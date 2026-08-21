@@ -17,10 +17,6 @@
   <button class="btn-primary" type="button" (click)="abrirCrear()">+ Nuevo Producto</button>
 </div>
 
-@if (avisoEscaneo()) {
-  <p class="ok">{{ avisoEscaneo() }}</p>
-}
-
 @if (cargando()) {
   <p class="muted">Cargando productos…</p>
 } @else if (error()) {
@@ -87,8 +83,13 @@
 
 @if (modalAbierto()) {
   <sd-modal [titulo]="editando() ? 'Editar producto' : 'Nuevo producto'" (cerrar)="modalAbierto.set(false)">
+    @if (avisoEscaneo()) {
+      <p class="ok">{{ avisoEscaneo() }}</p>
+    }
     @if (buscandoInfoExterna()) {
       <p class="muted">Buscando el producto en Open Food Facts…</p>
+    } @else if (sinResultadoExterno()) {
+      <p class="muted">No se encontró en Open Food Facts — completa los datos a mano.</p>
     }
     <label class="field">
       <span>Nombre</span>

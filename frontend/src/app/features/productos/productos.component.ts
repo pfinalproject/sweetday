@@ -43,6 +43,7 @@ export class ProductosComponent implements OnInit {
   readonly mostrarScanner = signal(false);
   readonly buscandoInfoExterna = signal(false);
   readonly avisoEscaneo = signal<string | null>(null);
+  readonly sinResultadoExterno = signal(false);
 
   readonly reabasteciendo = signal<Producto | null>(null);
   readonly guardandoCompra = signal(false);
@@ -115,6 +116,7 @@ export class ProductosComponent implements OnInit {
       proveedor_id: this.proveedores()[0]?.id ?? '',
     };
     this.errorForm.set(null);
+    this.sinResultadoExterno.set(false);
     this.modalAbierto.set(true);
   }
 
@@ -131,6 +133,7 @@ export class ProductosComponent implements OnInit {
       imagen_url: producto.imagen_url,
     };
     this.errorForm.set(null);
+    this.sinResultadoExterno.set(false);
     this.modalAbierto.set(true);
   }
 
@@ -269,10 +272,12 @@ export class ProductosComponent implements OnInit {
       this.errorForm.set(null);
       this.modalAbierto.set(true);
       this.buscandoInfoExterna.set(true);
+      this.sinResultadoExterno.set(false);
 
       this.openFoodFacts.buscarPorCodigo(codigo).subscribe((info) => {
         this.buscandoInfoExterna.set(false);
         if (!info) {
+          this.sinResultadoExterno.set(true);
           return;
         }
         this.form = { ...this.form, nombre: info.nombre, imagen_url: info.imagenUrl };
