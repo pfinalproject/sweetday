@@ -8,6 +8,7 @@ from app.models.producto import Producto
 from app.models.usuario import RolUsuario
 from app.schemas.producto import ProductoCrear, ProductoReconocido, ProductoSalida
 from app.services.embeddings import calcular_embedding
+from app.services.imagenes import redimensionar_imagen
 
 router = APIRouter(prefix="/api/productos", tags=["productos"])
 
@@ -59,7 +60,8 @@ async def reconocer(archivo: UploadFile = File(...), db: Session = Depends(get_d
     if len(datos) > LIMITE_TAMANO_BYTES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen no puede pesar mas de 8MB")
 
-    vector = calcular_embedding(datos)
+    datos_optimizados = redimensionar_imagen(datos)
+    vector = calcular_embedding(datos_optimizados)
     distancia = Producto.embedding.cosine_distance(vector).label("distancia")
 
     filas = (
@@ -126,9 +128,10 @@ async def subir_foto(producto_id: str, archivo: UploadFile = File(...), db: Sess
     if len(datos) > LIMITE_TAMANO_BYTES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen no puede pesar mas de 8MB")
 
-    producto.imagen_datos = datos
-    producto.imagen_mime = archivo.content_type
-    producto.embedding = calcular_embedding(datos)
+    datos_optimizados = redimensionar_imagen(datos)
+    producto.imagen_datos = datos_optimizados
+    producto.imagen_mime = "image/jpeg"
+    producto.embedding = calcular_embedding(datos_optimizados)
     db.commit()
     db.refresh(producto)
     return producto

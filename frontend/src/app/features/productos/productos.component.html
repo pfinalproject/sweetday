@@ -42,7 +42,7 @@
             <td>
               <div class="celda-producto">
                 @if (producto.tiene_foto) {
-                  <img class="miniatura" [src]="fotoUrl(producto)" alt="" />
+                  <img class="miniatura" [src]="fotoUrl(producto)" alt="" loading="lazy" />
                 }
                 <span>{{ producto.nombre }}</span>
               </div>
