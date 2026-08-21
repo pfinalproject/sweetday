@@ -13,6 +13,7 @@ interface OpenFoodFactsRespuesta {
     product_name?: string;
     brands?: string;
     image_front_small_url?: string;
+    quantity?: string;
   };
 }
 
@@ -27,16 +28,28 @@ export class OpenFoodFactsService {
   constructor(private readonly http: HttpClient) {}
 
   buscarPorCodigo(codigoBarras: string): Observable<ProductoExterno | null> {
-    const url = `https://world.openfoodfacts.org/api/v2/product/${codigoBarras}.json?fields=product_name,brands,image_front_small_url`;
+    const url = `https://world.openfoodfacts.org/api/v2/product/${codigoBarras}.json?fields=product_name,brands,image_front_small_url,quantity`;
     return this.http.get<OpenFoodFactsRespuesta>(url).pipe(
       map((respuesta) => {
-        if (respuesta.status !== 1 || !respuesta.product?.product_name) {
+        const producto = respuesta.product;
+        if (respuesta.status !== 1 || !producto?.product_name) {
           return null;
         }
-        const nombre = respuesta.product.brands
-          ? `${respuesta.product.product_name} (${respuesta.product.brands})`
-          : respuesta.product.product_name;
-        return { nombre, imagenUrl: respuesta.product.image_front_small_url ?? null };
+
+        let nombre = producto.product_name;
+
+        // Solo agrega la marca si aporta algo — muchos productos ya la traen en el nombre.
+        const marcaPrincipal = producto.brands?.split(',')[0]?.trim();
+        if (marcaPrincipal && !nombre.toLowerCase().includes(marcaPrincipal.toLowerCase())) {
+          nombre += ` (${marcaPrincipal})`;
+        }
+
+        // Cantidad/tamaño (ej. "500 ml", "180g") — casi nunca falta y ayuda a distinguir variantes.
+        if (producto.quantity) {
+          nombre += ` — ${producto.quantity}`;
+        }
+
+        return { nombre, imagenUrl: producto.image_front_small_url ?? null };
       }),
       catchError(() => of(null)),
     );
