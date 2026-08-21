@@ -1,11 +1,14 @@
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import Boolean, ForeignKey, LargeBinary, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+DIMENSION_EMBEDDING = 2048
 
 
 class Producto(Base):
@@ -19,6 +22,15 @@ class Producto(Base):
     stock: Mapped[int] = mapped_column(default=0)
     imagen_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Foto real subida por la duena (para reconocimiento visual) y su embedding CLIP/ResNet.
+    imagen_datos: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    imagen_mime: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(DIMENSION_EMBEDDING), nullable=True)
+
+    @property
+    def tiene_foto(self) -> bool:
+        return self.imagen_datos is not None
 
     categoria_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("categorias.id"), nullable=False)
     categoria = relationship("Categoria")

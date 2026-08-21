@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Producto } from '../../shared/models/producto.model';
+import { Producto, ProductoReconocido } from '../../shared/models/producto.model';
 
 export interface ProductoForm {
   nombre: string;
@@ -41,5 +41,21 @@ export class ProductosService {
 
   desactivar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  fotoUrl(id: string): string {
+    return `${this.base}/${id}/foto`;
+  }
+
+  subirFoto(id: string, archivo: File): Observable<Producto> {
+    const form = new FormData();
+    form.append('archivo', archivo);
+    return this.http.post<Producto>(`${this.base}/${id}/foto`, form);
+  }
+
+  reconocer(archivo: File): Observable<ProductoReconocido[]> {
+    const form = new FormData();
+    form.append('archivo', archivo);
+    return this.http.post<ProductoReconocido[]>(`${this.base}/reconocer`, form);
   }
 }

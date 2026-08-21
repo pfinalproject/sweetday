@@ -52,6 +52,11 @@ export const routes: Routes = [
         canActivate: [rolGuard('DUENA')],
         loadComponent: () => import('./features/reportes/reportes.component').then((m) => m.ReportesComponent),
       },
+      {
+        path: 'asistente',
+        canActivate: [rolGuard('DUENA')],
+        loadComponent: () => import('./features/asistente/asistente.component').then((m) => m.AsistenteComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

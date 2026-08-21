@@ -13,6 +13,7 @@
   <input class="search" type="search" placeholder="Buscar producto..." [(ngModel)]="busqueda" />
   <div class="spacer"></div>
   <button class="btn-outline" type="button" (click)="abrirScanner()">Escanear</button>
+  <button class="btn-outline" type="button" (click)="abrirReconocer()">Reconocer por foto</button>
   <button class="btn-primary" type="button" (click)="abrirCrear()">+ Nuevo Producto</button>
 </div>
 
@@ -42,7 +43,14 @@
       <tbody>
         @for (producto of productosFiltrados(); track producto.id) {
           <tr>
-            <td>{{ producto.nombre }}</td>
+            <td>
+              <div class="celda-producto">
+                @if (producto.tiene_foto) {
+                  <img class="miniatura" [src]="fotoUrl(producto)" alt="" />
+                }
+                <span>{{ producto.nombre }}</span>
+              </div>
+            </td>
             <td>{{ producto.categoria.nombre }}</td>
             <td>{{ producto.proveedor.nombre }}</td>
             <td class="muted">Bs {{ producto.costo }}</td>
@@ -119,6 +127,26 @@
       <input type="number" min="0" [(ngModel)]="form.stock" name="stock" />
     </label>
 
+    @if (editando()) {
+      <div class="field">
+        <span>Foto del producto (para reconocimiento visual)</span>
+        <div class="foto-producto">
+          @if (editando()!.tiene_foto) {
+            <img [src]="fotoUrl(editando()!)" alt="" />
+          } @else {
+            <div class="foto-vacia">Sin foto</div>
+          }
+          <label class="btn-outline foto-boton">
+            {{ subiendoFoto() ? 'Subiendo…' : editando()!.tiene_foto ? 'Cambiar foto' : 'Subir foto' }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onArchivoFoto($event)" [disabled]="subiendoFoto()" hidden />
+          </label>
+        </div>
+        @if (errorFoto()) {
+          <p class="error">{{ errorFoto() }}</p>
+        }
+      </div>
+    }
+
     @if (errorForm()) {
       <p class="error">{{ errorForm() }}</p>
     }
@@ -134,6 +162,52 @@
 
 @if (mostrarScanner()) {
   <sd-barcode-scanner (codigoDetectado)="onCodigoDetectado($event)" (cerrar)="mostrarScanner.set(false)"></sd-barcode-scanner>
+}
+
+@if (mostrarReconocer()) {
+  <sd-modal titulo="Reconocer producto por foto" (cerrar)="mostrarReconocer.set(false)">
+    <p class="muted">
+      Toma o sube una foto del producto (sin código de barras) y busco los productos más parecidos
+      entre las fotos ya cargadas en el catálogo.
+    </p>
+
+    <label class="btn-primary foto-boton">
+      {{ reconociendo() ? 'Analizando…' : 'Tomar o elegir foto' }}
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        capture="environment"
+        (change)="onArchivoReconocer($event)"
+        [disabled]="reconociendo()"
+        hidden
+      />
+    </label>
+
+    @if (errorReconocer()) {
+      <p class="error">{{ errorReconocer() }}</p>
+    }
+
+    @if (resultadosReconocer(); as resultados) {
+      @if (resultados.length === 0) {
+        <p class="muted">No hay ninguna foto cargada en el catálogo todavía para comparar.</p>
+      } @else {
+        <ul class="lista-reconocidos">
+          @for (resultado of resultados; track resultado.producto.id) {
+            <li>
+              <button type="button" (click)="elegirReconocido(resultado.producto)">
+                <img [src]="fotoUrl(resultado.producto)" alt="" />
+                <div>
+                  <strong>{{ resultado.producto.nombre }}</strong>
+                  <span class="muted">Bs {{ resultado.producto.precio }} · stock {{ resultado.producto.stock }}</span>
+                </div>
+                <span class="badge" [class.warning]="resultado.similitud_pct < 60">{{ resultado.similitud_pct }}%</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </sd-modal>
 }
 
 @if (reabasteciendo()) {

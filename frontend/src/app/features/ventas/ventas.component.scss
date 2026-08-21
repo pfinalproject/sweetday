@@ -65,10 +65,12 @@
 
 .pos-buscador {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 
   .search {
     flex: 1;
+    min-width: 160px;
   }
 }
 

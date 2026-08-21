@@ -3,8 +3,9 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
+import { ModalComponent } from '../../shared/modal/modal.component';
 import { TicketComponent } from '../../shared/ticket/ticket.component';
-import { Producto } from '../../shared/models/producto.model';
+import { Producto, ProductoReconocido } from '../../shared/models/producto.model';
 import { ProductosService } from '../productos/productos.service';
 import { CajaService, TurnoCaja } from './caja.service';
 import { Venta, VentasService } from './ventas.service';
@@ -17,7 +18,7 @@ interface LineaCarrito {
 @Component({
   selector: 'sd-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule, TicketComponent, BarcodeScannerComponent],
+  imports: [CommonModule, FormsModule, TicketComponent, BarcodeScannerComponent, ModalComponent],
   templateUrl: './ventas.component.html',
   styleUrl: './ventas.component.scss',
 })
@@ -41,6 +42,11 @@ export class VentasComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly ticket = signal<Venta | null>(null);
   readonly mostrarScanner = signal(false);
+
+  readonly mostrarReconocer = signal(false);
+  readonly reconociendo = signal(false);
+  readonly errorReconocer = signal<string | null>(null);
+  readonly resultadosReconocer = signal<ProductoReconocido[] | null>(null);
 
   montoApertura: number | null = null;
   montoCierre: number | null = null;
@@ -149,6 +155,51 @@ export class VentasComponent implements OnInit {
       this.error.set(`No se encontró ningún producto con el código ${codigo}.`);
       return;
     }
+    if (producto.stock <= 0) {
+      this.error.set(`"${producto.nombre}" está sin stock.`);
+      return;
+    }
+    this.error.set(null);
+    this.agregarAlCarrito(producto);
+  }
+
+  // ---- Reconocer producto sin codigo de barras (por foto) ----
+
+  abrirReconocer(): void {
+    this.resultadosReconocer.set(null);
+    this.errorReconocer.set(null);
+    this.mostrarReconocer.set(true);
+  }
+
+  onArchivoReconocer(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    input.value = '';
+    if (!archivo) {
+      return;
+    }
+
+    this.reconociendo.set(true);
+    this.errorReconocer.set(null);
+    this.resultadosReconocer.set(null);
+    this.productosService.reconocer(archivo).subscribe({
+      next: (resultados) => {
+        this.reconociendo.set(false);
+        this.resultadosReconocer.set(resultados);
+      },
+      error: () => {
+        this.reconociendo.set(false);
+        this.errorReconocer.set('No se pudo procesar la imagen. Intenta de nuevo.');
+      },
+    });
+  }
+
+  fotoUrl(producto: Producto): string {
+    return this.productosService.fotoUrl(producto.id);
+  }
+
+  elegirReconocido(producto: Producto): void {
+    this.mostrarReconocer.set(false);
     if (producto.stock <= 0) {
       this.error.set(`"${producto.nombre}" está sin stock.`);
       return;

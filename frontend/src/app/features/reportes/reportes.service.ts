@@ -11,6 +11,14 @@ export interface ResumenFinanciero {
   num_compras: number;
 }
 
+export interface ProductoTendencia {
+  producto_id: string;
+  nombre: string;
+  unidades_semana_actual: number;
+  unidades_semana_anterior: number;
+  variacion_pct: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportesService {
   private readonly base = `${environment.apiUrl}/reportes`;
@@ -22,5 +30,9 @@ export class ReportesService {
     if (desde) params['desde'] = desde;
     if (hasta) params['hasta'] = hasta;
     return this.http.get<ResumenFinanciero>(`${this.base}/resumen`, { params });
+  }
+
+  tendencias(): Observable<ProductoTendencia[]> {
+    return this.http.get<ProductoTendencia[]>(`${this.base}/tendencias`);
   }
 }

@@ -1,7 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, categorias, compras, productos, proveedores, reportes, turnos_caja, usuarios, ventas
+from app.api.routes import (
+    asistente,
+    auth,
+    categorias,
+    compras,
+    productos,
+    proveedores,
+    reportes,
+    turnos_caja,
+    usuarios,
+    ventas,
+)
 from app.core.config import settings
 
 app = FastAPI(title="SweetDay API", version="0.1.0")
@@ -23,6 +34,7 @@ app.include_router(turnos_caja.router)
 app.include_router(ventas.router)
 app.include_router(compras.router)
 app.include_router(reportes.router)
+app.include_router(asistente.router)
 
 
 @app.get("/api/health")

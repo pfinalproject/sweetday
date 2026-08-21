@@ -5,7 +5,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AlertasService } from '../../core/alertas/alertas.service';
 import { CajaService, TurnoCaja } from '../ventas/caja.service';
 import { Venta, VentasService } from '../ventas/ventas.service';
-import { ReportesService, ResumenFinanciero } from '../reportes/reportes.service';
+import { ProductoTendencia, ReportesService, ResumenFinanciero } from '../reportes/reportes.service';
 
 function hoyISO(): string {
   const ahora = new Date();
@@ -36,6 +36,9 @@ export class DashboardComponent implements OnInit {
   readonly caja = signal<TurnoCaja | null>(null);
   readonly resumenHoy = signal<ResumenFinanciero | null>(null);
   readonly ventasHoy = signal<Venta[]>([]);
+
+  readonly cargandoTendencias = signal(true);
+  readonly tendencias = signal<ProductoTendencia[]>([]);
 
   readonly cargadoStock = this.alertasService.cargado;
   readonly stockBajo = computed(() => this.alertasService.criticos().slice(0, 6));
@@ -71,6 +74,14 @@ export class DashboardComponent implements OnInit {
     this.ventasService.listar(hoy, hoy).subscribe({
       next: (ventas) => this.ventasHoy.set(ventas),
       error: () => {},
+    });
+
+    this.reportesService.tendencias().subscribe({
+      next: (tendencias) => {
+        this.tendencias.set(tendencias);
+        this.cargandoTendencias.set(false);
+      },
+      error: () => this.cargandoTendencias.set(false),
     });
   }
 }

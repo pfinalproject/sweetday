@@ -5,7 +5,7 @@ import { CategoriasService } from '../categorias/categorias.service';
 import { ProveedoresService } from '../proveedores/proveedores.service';
 import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
 import { ModalComponent } from '../../shared/modal/modal.component';
-import { Categoria, Producto, Proveedor } from '../../shared/models/producto.model';
+import { Categoria, Producto, ProductoReconocido, Proveedor } from '../../shared/models/producto.model';
 import { ComprasService } from './compras.service';
 import { OpenFoodFactsService } from './open-food-facts.service';
 import { ProductoForm, ProductosService } from './productos.service';
@@ -49,6 +49,14 @@ export class ProductosComponent implements OnInit {
   readonly errorCompra = signal<string | null>(null);
   cantidadCompra = 1;
   costoCompra = 0;
+
+  readonly subiendoFoto = signal(false);
+  readonly errorFoto = signal<string | null>(null);
+
+  readonly mostrarReconocer = signal(false);
+  readonly reconociendo = signal(false);
+  readonly errorReconocer = signal<string | null>(null);
+  readonly resultadosReconocer = signal<ProductoReconocido[] | null>(null);
 
   busqueda = '';
   form: ProductoForm = { ...FORM_VACIO };
@@ -162,6 +170,72 @@ export class ProductosComponent implements OnInit {
       return;
     }
     this.productosService.desactivar(producto.id).subscribe(() => this.cargar());
+  }
+
+  fotoUrl(producto: Producto): string {
+    return this.productosService.fotoUrl(producto.id);
+  }
+
+  // ---- Foto del producto (para reconocimiento visual) ----
+
+  onArchivoFoto(event: Event): void {
+    const editando = this.editando();
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    input.value = '';
+    if (!editando || !archivo) {
+      return;
+    }
+
+    this.subiendoFoto.set(true);
+    this.errorFoto.set(null);
+    this.productosService.subirFoto(editando.id, archivo).subscribe({
+      next: (actualizado) => {
+        this.subiendoFoto.set(false);
+        this.editando.set(actualizado);
+        this.cargar();
+      },
+      error: () => {
+        this.subiendoFoto.set(false);
+        this.errorFoto.set('No se pudo subir la foto. Intenta con otra imagen (JPEG, PNG o WEBP, hasta 8MB).');
+      },
+    });
+  }
+
+  // ---- Reconocer producto por foto ----
+
+  abrirReconocer(): void {
+    this.resultadosReconocer.set(null);
+    this.errorReconocer.set(null);
+    this.mostrarReconocer.set(true);
+  }
+
+  onArchivoReconocer(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    input.value = '';
+    if (!archivo) {
+      return;
+    }
+
+    this.reconociendo.set(true);
+    this.errorReconocer.set(null);
+    this.resultadosReconocer.set(null);
+    this.productosService.reconocer(archivo).subscribe({
+      next: (resultados) => {
+        this.reconociendo.set(false);
+        this.resultadosReconocer.set(resultados);
+      },
+      error: () => {
+        this.reconociendo.set(false);
+        this.errorReconocer.set('No se pudo procesar la imagen. Intenta de nuevo.');
+      },
+    });
+  }
+
+  elegirReconocido(producto: Producto): void {
+    this.mostrarReconocer.set(false);
+    this.abrirEditar(producto);
   }
 
   // ---- Escaneo de codigo de barras ----

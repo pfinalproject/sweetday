@@ -1,13 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_usuario_actual, requiere_rol
 from app.db.session import get_db
 from app.models.producto import Producto
 from app.models.usuario import RolUsuario
-from app.schemas.producto import ProductoCrear, ProductoSalida
+from app.schemas.producto import ProductoCrear, ProductoReconocido, ProductoSalida
+from app.services.embeddings import calcular_embedding
 
 router = APIRouter(prefix="/api/productos", tags=["productos"])
+
+TIPOS_IMAGEN_PERMITIDOS = {"image/jpeg", "image/png", "image/webp"}
+LIMITE_TAMANO_BYTES = 8 * 1024 * 1024  # 8MB
+
+
+def _validar_imagen(archivo: UploadFile) -> None:
+    if archivo.content_type not in TIPOS_IMAGEN_PERMITIDOS:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen debe ser JPEG, PNG o WEBP")
 
 
 @router.get("", response_model=list[ProductoSalida], dependencies=[Depends(get_usuario_actual)])
@@ -39,6 +49,37 @@ def buscar_por_codigo(codigo_barras: str, db: Session = Depends(get_db)):
     return producto
 
 
+@router.post("/reconocer", response_model=list[ProductoReconocido], dependencies=[Depends(get_usuario_actual)])
+async def reconocer(archivo: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Reconocimiento visual: recibe una foto tomada con la camara y devuelve los
+    productos del catalogo mas parecidos, ordenados por similitud (sin codigo de barras).
+    """
+    _validar_imagen(archivo)
+    datos = await archivo.read()
+    if len(datos) > LIMITE_TAMANO_BYTES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen no puede pesar mas de 8MB")
+
+    vector = calcular_embedding(datos)
+    distancia = Producto.embedding.cosine_distance(vector).label("distancia")
+
+    filas = (
+        db.query(Producto, distancia)
+        .options(joinedload(Producto.categoria), joinedload(Producto.proveedor))
+        .filter(Producto.activo.is_(True), Producto.embedding.isnot(None))
+        .order_by(distancia)
+        .limit(5)
+        .all()
+    )
+
+    return [
+        ProductoReconocido(
+            producto=ProductoSalida.model_validate(producto),
+            similitud_pct=round(max(0.0, 1 - float(dist)) * 100, 1),
+        )
+        for producto, dist in filas
+    ]
+
+
 @router.post(
     "",
     response_model=ProductoSalida,
@@ -68,6 +109,37 @@ def actualizar(producto_id: str, datos: ProductoCrear, db: Session = Depends(get
     db.commit()
     db.refresh(producto)
     return producto
+
+
+@router.post(
+    "/{producto_id}/foto",
+    response_model=ProductoSalida,
+    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+)
+async def subir_foto(producto_id: str, archivo: UploadFile = File(...), db: Session = Depends(get_db)):
+    producto = db.get(Producto, producto_id)
+    if producto is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
+    _validar_imagen(archivo)
+
+    datos = await archivo.read()
+    if len(datos) > LIMITE_TAMANO_BYTES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen no puede pesar mas de 8MB")
+
+    producto.imagen_datos = datos
+    producto.imagen_mime = archivo.content_type
+    producto.embedding = calcular_embedding(datos)
+    db.commit()
+    db.refresh(producto)
+    return producto
+
+
+@router.get("/{producto_id}/foto")
+def obtener_foto(producto_id: str, db: Session = Depends(get_db)):
+    producto = db.get(Producto, producto_id)
+    if producto is None or producto.imagen_datos is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este producto no tiene foto")
+    return Response(content=producto.imagen_datos, media_type=producto.imagen_mime or "image/jpeg")
 
 
 @router.delete(

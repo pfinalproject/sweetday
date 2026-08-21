@@ -62,7 +62,7 @@
 
 .paneles {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
@@ -99,7 +99,8 @@
 }
 
 .lista-stock,
-.lista-ventas {
+.lista-ventas,
+.lista-tendencias {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -108,12 +109,24 @@
   gap: 10px;
 }
 
-.lista-stock li {
+.lista-stock li,
+.lista-tendencias li {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   font-size: 13.5px;
+}
+
+.lista-tendencias li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  span {
+    font-size: 12px;
+  }
 }
 
 .lista-ventas li {

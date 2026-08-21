@@ -29,5 +29,13 @@ class ProductoSalida(BaseModel):
     stock: int
     activo: bool
     imagen_url: str | None
+    tiene_foto: bool
     categoria: CategoriaSalida
     proveedor: ProveedorSalida
+
+
+class ProductoReconocido(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    producto: ProductoSalida
+    similitud_pct: float

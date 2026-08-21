@@ -1,0 +1,46 @@
+<div class="page-head">
+  <div>
+    <h2>Asistente</h2>
+    <p>Preguntale al asistente sobre tu stock y tus ventas</p>
+  </div>
+</div>
+
+<div class="chat">
+  <div class="chat-mensajes">
+    @if (mensajes().length === 0) {
+      <div class="bienvenida">
+        <p class="muted">Preguntame lo que quieras sobre tu inventario o tus ventas. Por ejemplo:</p>
+        <div class="sugerencias">
+          @for (sugerencia of sugerencias; track sugerencia) {
+            <button class="sugerencia" type="button" (click)="preguntar(sugerencia)">{{ sugerencia }}</button>
+          }
+        </div>
+      </div>
+    }
+
+    @for (mensaje of mensajes(); track $index) {
+      <div class="burbuja" [class.usuario]="mensaje.rol === 'usuario'" [class.error]="mensaje.esError">
+        {{ mensaje.texto }}
+      </div>
+    }
+
+    @if (enviando()) {
+      <div class="burbuja pensando">
+        <span></span><span></span><span></span>
+      </div>
+    }
+
+    <div #scrollAnchor></div>
+  </div>
+
+  <form class="chat-input" (ngSubmit)="preguntar()">
+    <input
+      type="text"
+      placeholder="Ej. ¿cuánto stock queda de Coca Cola?"
+      [(ngModel)]="pregunta"
+      name="pregunta"
+      [disabled]="enviando()"
+    />
+    <button class="btn-primary" type="submit" [disabled]="enviando() || !pregunta.trim()">Preguntar</button>
+  </form>
+</div>

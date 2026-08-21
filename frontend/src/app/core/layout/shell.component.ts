@@ -22,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/alertas', label: 'Alertas', icon: 'bell', roles: ['DUENA'] },
   { path: '/usuarios', label: 'Usuarios', icon: 'user', roles: ['DUENA'] },
   { path: '/reportes', label: 'Reportes', icon: 'chart', roles: ['DUENA'] },
+  { path: '/asistente', label: 'Asistente', icon: 'chat', roles: ['DUENA'] },
 ];
 
 @Component({

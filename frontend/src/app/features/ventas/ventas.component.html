@@ -61,6 +61,7 @@
       <div class="pos-buscador">
         <input class="search" type="search" placeholder="Buscar producto..." [(ngModel)]="busqueda" />
         <button class="btn-outline" type="button" (click)="mostrarScanner.set(true)">Escanear</button>
+        <button class="btn-outline" type="button" (click)="abrirReconocer()">Sin código</button>
       </div>
       <div class="grid-productos">
         @for (producto of productosFiltrados(); track producto.id) {
@@ -120,4 +121,47 @@
     (codigoDetectado)="onCodigoEscaneado($event)"
     (cerrar)="mostrarScanner.set(false)"
   ></sd-barcode-scanner>
+}
+
+@if (mostrarReconocer()) {
+  <sd-modal titulo="Producto sin código de barras" (cerrar)="mostrarReconocer.set(false)">
+    <p class="muted">Toma una foto del producto y busco los más parecidos en el catálogo.</p>
+
+    <label class="btn-primary foto-boton">
+      {{ reconociendo() ? 'Analizando…' : 'Tomar o elegir foto' }}
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        capture="environment"
+        (change)="onArchivoReconocer($event)"
+        [disabled]="reconociendo()"
+        hidden
+      />
+    </label>
+
+    @if (errorReconocer()) {
+      <p class="error">{{ errorReconocer() }}</p>
+    }
+
+    @if (resultadosReconocer(); as resultados) {
+      @if (resultados.length === 0) {
+        <p class="muted">No hay ninguna foto cargada en el catálogo todavía para comparar.</p>
+      } @else {
+        <ul class="lista-reconocidos">
+          @for (resultado of resultados; track resultado.producto.id) {
+            <li>
+              <button type="button" (click)="elegirReconocido(resultado.producto)">
+                <img [src]="fotoUrl(resultado.producto)" alt="" />
+                <div>
+                  <strong>{{ resultado.producto.nombre }}</strong>
+                  <span class="muted">Bs {{ resultado.producto.precio }} · stock {{ resultado.producto.stock }}</span>
+                </div>
+                <span class="badge" [class.warning]="resultado.similitud_pct < 60">{{ resultado.similitud_pct }}%</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </sd-modal>
 }

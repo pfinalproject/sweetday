@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: sweetday
@@ -25,6 +25,7 @@ services:
       DATABASE_URL: postgresql+psycopg2://sweetday:sweetday@db:5432/sweetday
     ports:
       - "8000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
     depends_on:

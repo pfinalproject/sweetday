@@ -84,5 +84,33 @@
         </ul>
       }
     </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>En tendencia esta semana</h3>
+        <a routerLink="/asistente" class="ver-todo">Preguntar al asistente →</a>
+      </div>
+      @if (cargandoTendencias()) {
+        <p class="muted">Calculando tendencias…</p>
+      } @else if (tendencias().length === 0) {
+        <p class="muted">Todavía no hay suficientes ventas esta semana para ver tendencias.</p>
+      } @else {
+        <ul class="lista-tendencias">
+          @for (producto of tendencias(); track producto.producto_id) {
+            <li>
+              <div>
+                <strong>{{ producto.nombre }}</strong>
+                <span class="muted">{{ producto.unidades_semana_actual }} und. esta semana (antes: {{ producto.unidades_semana_anterior }})</span>
+              </div>
+              @if (producto.variacion_pct === null) {
+                <span class="badge warning">nuevo</span>
+              } @else {
+                <span class="badge">+{{ producto.variacion_pct }}%</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
   </div>
 }

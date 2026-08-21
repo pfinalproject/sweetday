@@ -21,6 +21,12 @@ export interface Producto {
   stock: number;
   activo: boolean;
   imagen_url: string | null;
+  tiene_foto: boolean;
   categoria: Categoria;
   proveedor: Proveedor;
+}
+
+export interface ProductoReconocido {
+  producto: Producto;
+  similitud_pct: number;
 }
