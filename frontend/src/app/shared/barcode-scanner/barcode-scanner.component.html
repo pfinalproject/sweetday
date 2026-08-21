@@ -1,0 +1,34 @@
+<div class="modal-backdrop" (click)="cerrar.emit()">
+  <div class="scanner-panel" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>Escanear código de barras</h3>
+      <button type="button" (click)="cerrar.emit()" aria-label="Cerrar">×</button>
+    </div>
+
+    <div class="video-wrap">
+      <video #video muted playsinline></video>
+      <div class="guia"></div>
+      @if (tieneLinterna()) {
+        <button class="linterna" type="button" (click)="alternarLinterna()">
+          {{ linternaActiva() ? '🔦 Apagar' : '🔦 Linterna' }}
+        </button>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    } @else if (!listo()) {
+      <p class="muted">Accediendo a la cámara…</p>
+    } @else {
+      <p class="muted">Apunta al código de barras. Si no lo detecta, prueba con más luz o ingrésalo manualmente.</p>
+    }
+
+    <label class="field">
+      <span>Código manual</span>
+      <div class="manual-row">
+        <input type="text" inputmode="numeric" [(ngModel)]="codigoManual" (keyup.enter)="confirmarManual()" placeholder="Ej. 7501234567890" />
+        <button class="btn-primary" type="button" (click)="confirmarManual()">Usar</button>
+      </div>
+    </label>
+  </div>
+</div>

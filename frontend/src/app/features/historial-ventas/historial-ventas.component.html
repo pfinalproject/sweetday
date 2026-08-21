@@ -1,0 +1,63 @@
+<div class="page-head">
+  <div>
+    <h2>Historial de Ventas</h2>
+    <p>Consulta y reimpresión de tickets</p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <label class="field" style="max-width:160px;">
+    <span>Desde</span>
+    <input type="date" [(ngModel)]="desde" />
+  </label>
+  <label class="field" style="max-width:160px;">
+    <span>Hasta</span>
+    <input type="date" [(ngModel)]="hasta" />
+  </label>
+  <button class="btn-primary" type="button" style="align-self:flex-end;" (click)="cargar()">Filtrar</button>
+  <button class="btn-outline" type="button" style="align-self:flex-end;" (click)="limpiarFiltro()">Ver todo</button>
+  <div class="spacer"></div>
+</div>
+
+@if (cargando()) {
+  <p class="muted">Cargando historial…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cajera</th>
+          <th>Artículos</th>
+          <th>Total (Bs)</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (venta of ventas(); track venta.id) {
+          <tr>
+            <td>{{ venta.creado_en | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ venta.usuario_nombre }}</td>
+            <td>{{ numArticulos(venta) }}</td>
+            <td>Bs {{ venta.total }}</td>
+            <td class="acciones">
+              <button class="icon-btn" type="button" title="Ver ticket" (click)="ticket.set(venta)">
+                <svg viewBox="0 0 24 24"><path d="M4 3h16v18l-3-2-3 2-3-2-3 2-3-2-1 1Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="muted">No hay ventas registradas en este rango.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (ticket()) {
+  <sd-ticket [venta]="ticket()!" (cerrar)="ticket.set(null)"></sd-ticket>
+}

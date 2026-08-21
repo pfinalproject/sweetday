@@ -1,0 +1,29 @@
+<div class="login-shell">
+  <form class="login-card" (ngSubmit)="onSubmit()">
+    <div class="brand">
+      <span class="brand-mark">SD</span>
+      <div>
+        <h1>Sweet<em>Day</em></h1>
+        <p>Sistema Inteligente</p>
+      </div>
+    </div>
+
+    <label>
+      <span>Email</span>
+      <input type="email" name="email" [(ngModel)]="email" required autocomplete="username" />
+    </label>
+
+    <label>
+      <span>Contraseña</span>
+      <input type="password" name="password" [(ngModel)]="password" required autocomplete="current-password" />
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="cargando()">
+      {{ cargando() ? 'Ingresando...' : 'Ingresar' }}
+    </button>
+  </form>
+</div>

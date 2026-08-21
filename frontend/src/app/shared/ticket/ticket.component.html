@@ -1,0 +1,35 @@
+<div class="modal-backdrop no-imprimir" (click)="cerrar.emit()">
+  <div class="ticket-imprimible" (click)="$event.stopPropagation()">
+    <div class="ticket-head">
+      <strong>SweetDay</strong>
+      <span>Tienda de aeropuerto</span>
+      <span class="folio">Ticket #{{ folio }}</span>
+      <span>{{ venta.creado_en | date: 'dd/MM/yyyy HH:mm' }}</span>
+      <span>Atendido por: {{ venta.usuario_nombre }}</span>
+    </div>
+
+    <div class="ticket-lineas">
+      @for (detalle of venta.detalles; track detalle.producto_id) {
+        <div class="ticket-linea">
+          <div class="ticket-linea-nombre">
+            <span>{{ detalle.nombre_producto }}</span>
+            <span class="muted">{{ detalle.cantidad }} x Bs {{ detalle.precio_unitario }}</span>
+          </div>
+          <span>Bs {{ subtotal(detalle) }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="ticket-total">
+      <span>Total</span>
+      <strong>Bs {{ venta.total }}</strong>
+    </div>
+
+    <p class="ticket-gracias">¡Gracias por su compra!</p>
+
+    <div class="ticket-acciones no-imprimir">
+      <button class="btn-outline" type="button" (click)="cerrar.emit()">Cerrar</button>
+      <button class="btn-primary" type="button" (click)="imprimir()">Imprimir</button>
+    </div>
+  </div>
+</div>

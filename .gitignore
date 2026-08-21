@@ -1,0 +1,19 @@
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+backend/.pgdata/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+
+# Capturas sueltas / archivos personales sin relación con el código
+/Pictures/

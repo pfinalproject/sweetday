@@ -1,0 +1,91 @@
+<div class="page-head">
+  <div>
+    <h2>Usuarios</h2>
+    <p>Cuentas Dueña / Empleada</p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="spacer"></div>
+  <button class="btn-primary" type="button" (click)="abrirModal()">+ Nuevo Usuario</button>
+</div>
+
+@if (cargando()) {
+  <p class="muted">Cargando usuarios…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (usuario of usuarios(); track usuario.id) {
+          <tr>
+            <td>{{ usuario.nombre }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>
+              <span class="badge neutral">{{ etiquetaRol(usuario.rol) }}</span>
+            </td>
+            <td>
+              <span class="badge" [class.inactive]="!usuario.activo">
+                {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="acciones">
+              <button class="btn-outline" type="button" (click)="toggleEstado(usuario)">
+                {{ usuario.activo ? 'Desactivar' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="muted">Todavía no hay usuarios.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (modalAbierto()) {
+  <sd-modal titulo="Nuevo usuario" (cerrar)="modalAbierto.set(false)">
+    <label class="field">
+      <span>Nombre</span>
+      <input type="text" [(ngModel)]="form.nombre" name="nombre" />
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input type="email" [(ngModel)]="form.email" name="email" />
+    </label>
+    <label class="field">
+      <span>Contraseña</span>
+      <input type="password" [(ngModel)]="form.password" name="password" />
+    </label>
+    <label class="field">
+      <span>Rol</span>
+      <select [(ngModel)]="form.rol" name="rol">
+        <option value="EMPLEADA">Empleada — solo Ventas</option>
+        <option value="DUENA">Dueña — acceso total</option>
+      </select>
+    </label>
+
+    @if (errorForm()) {
+      <p class="error">{{ errorForm() }}</p>
+    }
+
+    <div class="modal-actions">
+      <button class="btn-outline" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
+      <button class="btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">
+        {{ guardando() ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </sd-modal>
+}

@@ -1,0 +1,59 @@
+<div class="page-head">
+  <div>
+    <h2>Categorías</h2>
+    <p>Organización del catálogo</p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="spacer"></div>
+  <button class="btn-primary" type="button" (click)="abrirModal()">+ Nueva Categoría</button>
+</div>
+
+@if (cargando()) {
+  <p class="muted">Cargando categorías…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (categoria of categorias(); track categoria.id) {
+          <tr>
+            <td>{{ categoria.nombre }}</td>
+            <td class="acciones">
+              <button class="icon-btn" type="button" title="Desactivar" (click)="desactivar(categoria)">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="2" class="muted">Todavía no hay categorías.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (modalAbierto()) {
+  <sd-modal titulo="Nueva categoría" (cerrar)="modalAbierto.set(false)">
+    <label class="field">
+      <span>Nombre</span>
+      <input type="text" [(ngModel)]="nombreNueva" placeholder="Ej. Souvenirs" (keyup.enter)="guardar()" />
+    </label>
+    <div class="modal-actions">
+      <button class="btn-outline" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
+      <button class="btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">
+        {{ guardando() ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </sd-modal>
+}

@@ -1,0 +1,123 @@
+<div class="page-head">
+  <div>
+    <h2>Ventas</h2>
+    <p>Punto de venta</p>
+  </div>
+</div>
+
+@if (cargandoCaja()) {
+  <p class="muted">Verificando estado de caja…</p>
+} @else if (!caja()) {
+  <div class="caja-cerrada">
+    <h3>La caja está cerrada</h3>
+    @if (esDuena()) {
+      @if (!mostrarAbrirCaja()) {
+        <button class="btn-primary" type="button" (click)="mostrarAbrirCaja.set(true)">Abrir caja</button>
+      } @else {
+        <div class="caja-form">
+          <label class="field">
+            <span>Monto de apertura (Bs)</span>
+            <input type="number" min="0" step="0.01" [(ngModel)]="montoApertura" />
+          </label>
+          @if (error()) {
+            <p class="error">{{ error() }}</p>
+          }
+          <div class="modal-actions">
+            <button class="btn-outline" type="button" (click)="mostrarAbrirCaja.set(false)">Cancelar</button>
+            <button class="btn-primary" type="button" [disabled]="procesandoCaja()" (click)="abrirCaja()">
+              {{ procesandoCaja() ? 'Abriendo...' : 'Confirmar apertura' }}
+            </button>
+          </div>
+        </div>
+      }
+    } @else {
+      <p class="muted">Pide a la Dueña que abra la caja para poder vender.</p>
+    }
+  </div>
+} @else {
+  <div class="caja-bar">
+    <span class="badge">Caja abierta · apertura Bs {{ caja()!.monto_apertura }}</span>
+    @if (esDuena()) {
+      @if (!mostrarCerrarCaja()) {
+        <button class="btn-outline" type="button" (click)="mostrarCerrarCaja.set(true)">Cerrar caja</button>
+      } @else {
+        <div class="caja-form inline">
+          <input type="number" min="0" step="0.01" placeholder="Monto de cierre" [(ngModel)]="montoCierre" />
+          <button class="btn-outline" type="button" (click)="mostrarCerrarCaja.set(false)">Cancelar</button>
+          <button class="btn-primary" type="button" [disabled]="procesandoCaja()" (click)="cerrarCaja()">
+            {{ procesandoCaja() ? 'Cerrando...' : 'Confirmar cierre' }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="pos">
+    <div class="pos-productos">
+      <div class="pos-buscador">
+        <input class="search" type="search" placeholder="Buscar producto..." [(ngModel)]="busqueda" />
+        <button class="btn-outline" type="button" (click)="mostrarScanner.set(true)">Escanear</button>
+      </div>
+      <div class="grid-productos">
+        @for (producto of productosFiltrados(); track producto.id) {
+          <button class="tarjeta-producto" type="button" (click)="agregarAlCarrito(producto)">
+            <strong>{{ producto.nombre }}</strong>
+            <span>Bs {{ producto.precio }}</span>
+            <span class="muted">Stock: {{ producto.stock }}</span>
+          </button>
+        } @empty {
+          <p class="muted">No hay productos disponibles para vender.</p>
+        }
+      </div>
+    </div>
+
+    <div class="pos-carrito">
+      <h3>Carrito</h3>
+      @if (carrito().length === 0) {
+        <p class="muted">Toca un producto para agregarlo.</p>
+      } @else {
+        <div class="lineas">
+          @for (linea of carrito(); track linea.producto.id) {
+            <div class="linea">
+              <div class="linea-info">
+                <strong>{{ linea.producto.nombre }}</strong>
+                <span class="muted">Bs {{ linea.producto.precio }} c/u</span>
+              </div>
+              <div class="linea-cantidad">
+                <button type="button" (click)="cambiarCantidad(linea, -1)">−</button>
+                <span>{{ linea.cantidad }}</span>
+                <button type="button" (click)="cambiarCantidad(linea, 1)">+</button>
+              </div>
+              <button class="icon-btn" type="button" title="Quitar" (click)="quitarLinea(linea)">
+                <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+              </button>
+            </div>
+          }
+        </div>
+        <div class="total-row">
+          <span>Total</span>
+          <strong>Bs {{ total().toFixed(2) }}</strong>
+        </div>
+        <button class="btn-primary cobrar" type="button" [disabled]="procesandoCobro()" (click)="cobrar()">
+          {{ procesandoCobro() ? 'Procesando...' : 'Cobrar' }}
+        </button>
+      }
+    </div>
+  </div>
+}
+
+@if (ticket()) {
+  <sd-ticket [venta]="ticket()!" (cerrar)="ticket.set(null)"></sd-ticket>
+}
+
+@if (mostrarScanner()) {
+  <sd-barcode-scanner
+    [continuo]="true"
+    (codigoDetectado)="onCodigoEscaneado($event)"
+    (cerrar)="mostrarScanner.set(false)"
+  ></sd-barcode-scanner>
+}

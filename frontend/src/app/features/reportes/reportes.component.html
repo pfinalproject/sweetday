@@ -1,0 +1,43 @@
+<div class="page-head">
+  <div>
+    <h2>Reportes</h2>
+    <p>Ingresos, egresos y ganancia neta</p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="tabs">
+    <button class="tab" [class.active]="rango() === 'hoy'" type="button" (click)="cambiarRango('hoy')">Hoy</button>
+    <button class="tab" [class.active]="rango() === 'mes'" type="button" (click)="cambiarRango('mes')">Este mes</button>
+    <button class="tab" [class.active]="rango() === 'todo'" type="button" (click)="cambiarRango('todo')">Todo</button>
+  </div>
+</div>
+
+@if (cargando()) {
+  <p class="muted">Calculando…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  @if (resumen(); as r) {
+    <div class="tarjetas">
+      <div class="tarjeta">
+        <span class="etiqueta">Ingresos</span>
+        <strong class="valor ok">Bs {{ r.ingresos }}</strong>
+        <span class="detalle">{{ r.num_ventas }} venta(s)</span>
+      </div>
+      <div class="tarjeta">
+        <span class="etiqueta">Egresos</span>
+        <strong class="valor negativo">Bs {{ r.egresos }}</strong>
+        <span class="detalle">{{ r.num_compras }} compra(s) a proveedores</span>
+      </div>
+      <div class="tarjeta destacada">
+        <span class="etiqueta">Ganancia neta</span>
+        <strong class="valor" [class.ok]="+r.ganancia_neta >= 0" [class.negativo]="+r.ganancia_neta < 0">
+          Bs {{ r.ganancia_neta }}
+        </strong>
+        <span class="detalle">{{ margen !== null ? (margen | number: '1.0-1') + '% de margen sobre ingresos' : 'Sin ventas en el rango' }}</span>
+      </div>
+    </div>
+    <p class="nota muted">Ganancia neta = ingresos por ventas − egresos por compras a proveedores en el rango seleccionado.</p>
+  }
+}

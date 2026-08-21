@@ -1,0 +1,163 @@
+<div class="page-head">
+  <div>
+    <h2>Productos</h2>
+    <p>Gestión de inventario</p>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="tabs">
+    <button class="tab" [class.active]="vista() === 'activos'" type="button" (click)="cambiarVista('activos')">Activos</button>
+    <button class="tab" [class.active]="vista() === 'inactivos'" type="button" (click)="cambiarVista('inactivos')">Inactivos</button>
+  </div>
+  <input class="search" type="search" placeholder="Buscar producto..." [(ngModel)]="busqueda" />
+  <div class="spacer"></div>
+  <button class="btn-outline" type="button" (click)="abrirScanner()">Escanear</button>
+  <button class="btn-primary" type="button" (click)="abrirCrear()">+ Nuevo Producto</button>
+</div>
+
+@if (avisoEscaneo()) {
+  <p class="ok">{{ avisoEscaneo() }}</p>
+}
+
+@if (cargando()) {
+  <p class="muted">Cargando productos…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th>Proveedor</th>
+          <th>Costo (Bs)</th>
+          <th>Precio (Bs)</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (producto of productosFiltrados(); track producto.id) {
+          <tr>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.categoria.nombre }}</td>
+            <td>{{ producto.proveedor.nombre }}</td>
+            <td class="muted">Bs {{ producto.costo }}</td>
+            <td>Bs {{ producto.precio }}</td>
+            <td [class.low-stock]="producto.stock < 10">{{ producto.stock }}</td>
+            <td>
+              <span class="badge" [class.inactive]="!producto.activo">
+                {{ producto.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="acciones">
+              <button class="icon-btn" type="button" title="Editar" (click)="abrirEditar(producto)">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+              @if (vista() === 'activos') {
+                <button class="icon-btn" type="button" title="Reabastecer" (click)="abrirReabastecer(producto)">
+                  <svg viewBox="0 0 24 24"><rect x="1" y="7" width="14" height="10" rx="1.5"/><path d="M15 10h4l4 4v3h-8Z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
+                </button>
+                <button class="icon-btn" type="button" title="Desactivar" (click)="desactivar(producto)">
+                  <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="muted">No hay productos {{ vista() === 'activos' ? 'activos' : 'inactivos' }}.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (modalAbierto()) {
+  <sd-modal [titulo]="editando() ? 'Editar producto' : 'Nuevo producto'" (cerrar)="modalAbierto.set(false)">
+    @if (buscandoInfoExterna()) {
+      <p class="muted">Buscando el producto en Open Food Facts…</p>
+    }
+    <label class="field">
+      <span>Nombre</span>
+      <input type="text" [(ngModel)]="form.nombre" name="nombre" />
+    </label>
+    <label class="field">
+      <span>Código de barras (opcional)</span>
+      <input type="text" [(ngModel)]="form.codigo_barras" name="codigo_barras" />
+    </label>
+    <label class="field">
+      <span>Categoría</span>
+      <select [(ngModel)]="form.categoria_id" name="categoria_id">
+        @for (categoria of categorias(); track categoria.id) {
+          <option [value]="categoria.id">{{ categoria.nombre }}</option>
+        }
+      </select>
+    </label>
+    <label class="field">
+      <span>Proveedor</span>
+      <select [(ngModel)]="form.proveedor_id" name="proveedor_id">
+        @for (proveedor of proveedores(); track proveedor.id) {
+          <option [value]="proveedor.id">{{ proveedor.nombre }}</option>
+        }
+      </select>
+    </label>
+    <label class="field">
+      <span>Costo — a cuánto lo compras (Bs)</span>
+      <input type="number" min="0" step="0.01" [(ngModel)]="form.costo" name="costo" />
+    </label>
+    <label class="field">
+      <span>Precio de venta (Bs)</span>
+      <input type="number" min="0" step="0.01" [(ngModel)]="form.precio" name="precio" />
+    </label>
+    <label class="field">
+      <span>Stock</span>
+      <input type="number" min="0" [(ngModel)]="form.stock" name="stock" />
+    </label>
+
+    @if (errorForm()) {
+      <p class="error">{{ errorForm() }}</p>
+    }
+
+    <div class="modal-actions">
+      <button class="btn-outline" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
+      <button class="btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">
+        {{ guardando() ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </sd-modal>
+}
+
+@if (mostrarScanner()) {
+  <sd-barcode-scanner (codigoDetectado)="onCodigoDetectado($event)" (cerrar)="mostrarScanner.set(false)"></sd-barcode-scanner>
+}
+
+@if (reabasteciendo()) {
+  <sd-modal titulo="Reabastecer" (cerrar)="reabasteciendo.set(null)">
+    <p class="muted">{{ reabasteciendo()!.nombre }} — proveedor: {{ reabasteciendo()!.proveedor.nombre }}</p>
+    <label class="field">
+      <span>Cantidad comprada</span>
+      <input type="number" min="1" [(ngModel)]="cantidadCompra" name="cantidadCompra" />
+    </label>
+    <label class="field">
+      <span>Costo unitario (Bs)</span>
+      <input type="number" min="0" step="0.01" [(ngModel)]="costoCompra" name="costoCompra" />
+    </label>
+    <p class="muted">Egreso total: Bs {{ (cantidadCompra * costoCompra).toFixed(2) }}</p>
+
+    @if (errorCompra()) {
+      <p class="error">{{ errorCompra() }}</p>
+    }
+
+    <div class="modal-actions">
+      <button class="btn-outline" type="button" (click)="reabasteciendo.set(null)">Cancelar</button>
+      <button class="btn-primary" type="button" [disabled]="guardandoCompra()" (click)="registrarCompra()">
+        {{ guardandoCompra() ? 'Guardando...' : 'Registrar compra' }}
+      </button>
+    </div>
+  </sd-modal>
+}

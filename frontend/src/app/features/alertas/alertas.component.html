@@ -1,0 +1,77 @@
+<div class="page-head">
+  <div>
+    <h2>Alertas</h2>
+    <p>Productos sin stock o por agotarse (menos de 10 unidades)</p>
+  </div>
+</div>
+
+@if (!cargado()) {
+  <p class="muted">Revisando inventario…</p>
+} @else if (sinAlertas()) {
+  <div class="sin-alertas">
+    <h3>Todo en orden</h3>
+    <p class="muted">Ningún producto activo está sin stock o por debajo de 10 unidades.</p>
+  </div>
+} @else {
+  @if (sinStock().length > 0) {
+    <section class="grupo">
+      <h3 class="titulo-grupo critico">Sin stock ({{ sinStock().length }})</h3>
+      <div class="lista">
+        @for (producto of sinStock(); track producto.id) {
+          <div class="fila">
+            <div class="info">
+              <strong>{{ producto.nombre }}</strong>
+              <span class="muted">{{ producto.categoria.nombre }} · proveedor: {{ producto.proveedor.nombre }}</span>
+            </div>
+            <span class="badge inactive">0 und.</span>
+            <div class="acciones">
+              @if (producto.proveedor.telefono) {
+                <a
+                  class="icon-btn whatsapp"
+                  [href]="'https://wa.me/' + telefonoNormalizado(producto.proveedor.telefono!)"
+                  target="_blank"
+                  rel="noopener"
+                  title="Escribir al proveedor por WhatsApp"
+                >
+                  <svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 20l1-5.3A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 9.5c.3 2.5 2.5 4.7 5 5"/></svg>
+                </a>
+              }
+              <a routerLink="/productos" class="btn-outline">Reabastecer</a>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (stockBajo().length > 0) {
+    <section class="grupo">
+      <h3 class="titulo-grupo">Stock bajo ({{ stockBajo().length }})</h3>
+      <div class="lista">
+        @for (producto of stockBajo(); track producto.id) {
+          <div class="fila">
+            <div class="info">
+              <strong>{{ producto.nombre }}</strong>
+              <span class="muted">{{ producto.categoria.nombre }} · proveedor: {{ producto.proveedor.nombre }}</span>
+            </div>
+            <span class="badge warning">{{ producto.stock }} und.</span>
+            <div class="acciones">
+              @if (producto.proveedor.telefono) {
+                <a
+                  class="icon-btn whatsapp"
+                  [href]="'https://wa.me/' + telefonoNormalizado(producto.proveedor.telefono!)"
+                  target="_blank"
+                  rel="noopener"
+                  title="Escribir al proveedor por WhatsApp"
+                >
+                  <svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 20l1-5.3A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 9.5c.3 2.5 2.5 4.7 5 5"/></svg>
+                </a>
+              }
+              <a routerLink="/productos" class="btn-outline">Reabastecer</a>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+}

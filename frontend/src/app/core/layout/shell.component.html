@@ -1,0 +1,122 @@
+<div class="shell" [class.menu-abierto]="menuAbierto()">
+  <div class="sidebar-backdrop" (click)="cerrarMenu()"></div>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">SD</span>
+      <div>
+        <h1>Sweet<em>Day</em></h1>
+        <p>Sistema Inteligente</p>
+      </div>
+      <button class="cerrar-menu" type="button" (click)="cerrarMenu()" aria-label="Cerrar menú">
+        <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <nav>
+      @for (item of navItems(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item" (click)="cerrarMenu()">
+          <span class="nav-icon">
+            @switch (item.icon) {
+              @case ('grid') {
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+              }
+              @case ('tag') {
+                <svg viewBox="0 0 24 24"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L4 3l-.24 5.59a2 2 0 0 0 .58 1.41l9.59 9.59a2 2 0 0 0 2.83 0l3.83-3.83a2 2 0 0 0 0-2.83Z"/><circle cx="8.5" cy="8.5" r="1.2"/></svg>
+              }
+              @case ('box') {
+                <svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+              }
+              @case ('truck') {
+                <svg viewBox="0 0 24 24"><rect x="1" y="7" width="14" height="10" rx="1.5"/><path d="M15 10h4l4 4v3h-8Z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
+              }
+              @case ('cart') {
+                <svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.6a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H6"/></svg>
+              }
+              @case ('clock') {
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+              }
+              @case ('bell') {
+                <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              }
+              @case ('user') {
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+              }
+              @case ('chart') {
+                <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12.5" y="8" width="3" height="10"/><rect x="18" y="5" width="3" height="13"/></svg>
+              }
+            }
+          </span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <button class="logout" type="button" (click)="cerrarSesion()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      <span>Cerrar Sesión</span>
+    </button>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="abrir-menu" type="button" (click)="alternarMenu()" aria-label="Abrir menú">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
+      </button>
+      <span class="spacer"></span>
+
+      @if (esDuena()) {
+        <div class="bell-wrap">
+          <button
+            class="bell"
+            type="button"
+            [class.tiene-alertas]="totalAlertas() > 0"
+            (click)="alternarPanelAlertas()"
+            aria-label="Alertas de stock"
+          >
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            @if (totalAlertas() > 0) {
+              <span class="bell-contador">{{ totalAlertas() > 9 ? '9+' : totalAlertas() }}</span>
+            }
+          </button>
+
+          @if (panelAlertasAbierto()) {
+            <div class="bell-backdrop" (click)="cerrarPanelAlertas()"></div>
+            <div class="bell-panel">
+              <div class="bell-panel-head">
+                <h4>Alertas de stock</h4>
+              </div>
+              @if (alertasCriticas().length === 0) {
+                <p class="muted">Ningún producto sin stock o por debajo de 10 unidades.</p>
+              } @else {
+                <ul>
+                  @for (producto of alertasCriticas().slice(0, 5); track producto.id) {
+                    <li>
+                      <span class="nombre">{{ producto.nombre }}</span>
+                      <span class="badge" [class.inactive]="producto.stock === 0" [class.warning]="producto.stock > 0">
+                        {{ producto.stock }} und.
+                      </span>
+                    </li>
+                  }
+                </ul>
+              }
+              <a routerLink="/alertas" class="ver-todas" (click)="cerrarPanelAlertas()">Ver todas las alertas →</a>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="user-chip">
+        <span class="avatar">{{ iniciales() }}</span>
+        <div>
+          <strong>{{ usuario()?.nombre }}</strong>
+          <p>{{ usuario()?.rol === 'DUENA' ? 'Dueña' : 'Empleada' }}</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

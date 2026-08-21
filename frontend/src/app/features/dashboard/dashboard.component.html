@@ -1,0 +1,88 @@
+<div class="page-head">
+  <div>
+    <h2>Hola, {{ usuario()?.nombre }}</h2>
+    <p class="capitalize">{{ fechaHoy }}</p>
+  </div>
+</div>
+
+@if (cargando()) {
+  <p class="muted">Cargando el resumen…</p>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <div class="caja-estado" [class.abierta]="caja()">
+    @if (caja()) {
+      <span class="badge">Caja abierta · apertura Bs {{ caja()!.monto_apertura }}</span>
+    } @else {
+      <span class="badge inactive">Caja cerrada</span>
+      <a routerLink="/ventas" class="btn-outline">Abrir caja</a>
+    }
+  </div>
+
+  <div class="tarjetas">
+    <div class="tarjeta destacada">
+      <span class="etiqueta">Ingresos de hoy</span>
+      <span class="valor">Bs {{ resumenHoy()?.ingresos }}</span>
+      <span class="detalle">{{ resumenHoy()?.num_ventas }} venta(s)</span>
+    </div>
+    <div class="tarjeta">
+      <span class="etiqueta">Egresos de hoy</span>
+      <span class="valor">Bs {{ resumenHoy()?.egresos }}</span>
+      <span class="detalle">{{ resumenHoy()?.num_compras }} compra(s) a proveedor</span>
+    </div>
+    <div class="tarjeta">
+      <span class="etiqueta">Ganancia neta de hoy</span>
+      <span class="valor" [class.ok]="gananciaHoy() >= 0" [class.negativo]="gananciaHoy() < 0">
+        Bs {{ resumenHoy()?.ganancia_neta }}
+      </span>
+      <span class="detalle">Ingresos − egresos</span>
+    </div>
+  </div>
+
+  <div class="paneles">
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Stock crítico</h3>
+        <a routerLink="/productos" class="ver-todo">Ver productos →</a>
+      </div>
+      @if (!cargadoStock()) {
+        <p class="muted">Revisando inventario…</p>
+      } @else if (stockBajo().length === 0) {
+        <p class="muted">Ningún producto por debajo de 10 unidades. Todo en orden.</p>
+      } @else {
+        <ul class="lista-stock">
+          @for (producto of stockBajo(); track producto.id) {
+            <li>
+              <span>{{ producto.nombre }}</span>
+              <span class="badge" [class.inactive]="producto.stock === 0" [class.warning]="producto.stock > 0">
+                {{ producto.stock }} und.
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Últimas ventas de hoy</h3>
+        <a routerLink="/historial-ventas" class="ver-todo">Ver historial →</a>
+      </div>
+      @if (ultimasVentas().length === 0) {
+        <p class="muted">Todavía no se registró ninguna venta hoy.</p>
+      } @else {
+        <ul class="lista-ventas">
+          @for (venta of ultimasVentas(); track venta.id) {
+            <li>
+              <div>
+                <strong>Bs {{ venta.total }}</strong>
+                <span class="muted">{{ venta.usuario_nombre }} · {{ venta.detalles.length }} producto(s)</span>
+              </div>
+              <span class="hora">{{ venta.creado_en | date: 'HH:mm' }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+}
