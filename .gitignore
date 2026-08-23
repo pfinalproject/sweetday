@@ -17,3 +17,7 @@ frontend/.angular/
 
 # Capturas sueltas / archivos personales sin relación con el código
 /Pictures/
+
+# Documentos del examen de grado y notas de contexto (contienen credenciales) —
+# el repo es público, esto no debe subirse nunca.
+/files/
