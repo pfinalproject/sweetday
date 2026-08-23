@@ -86,7 +86,7 @@ async def reconocer(archivo: UploadFile = File(...), db: Session = Depends(get_d
     "",
     response_model=ProductoSalida,
     status_code=201,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def crear(datos: ProductoCrear, db: Session = Depends(get_db)):
     producto = Producto(**datos.model_dump())
@@ -99,7 +99,7 @@ def crear(datos: ProductoCrear, db: Session = Depends(get_db)):
 @router.put(
     "/{producto_id}",
     response_model=ProductoSalida,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def actualizar(producto_id: str, datos: ProductoCrear, db: Session = Depends(get_db)):
     producto = db.get(Producto, producto_id)
@@ -116,7 +116,7 @@ def actualizar(producto_id: str, datos: ProductoCrear, db: Session = Depends(get
 @router.post(
     "/{producto_id}/foto",
     response_model=ProductoSalida,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 async def subir_foto(producto_id: str, archivo: UploadFile = File(...), db: Session = Depends(get_db)):
     producto = db.get(Producto, producto_id)
@@ -148,7 +148,7 @@ def obtener_foto(producto_id: str, db: Session = Depends(get_db)):
 @router.delete(
     "/{producto_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def desactivar(producto_id: str, db: Session = Depends(get_db)):
     producto = db.get(Producto, producto_id)

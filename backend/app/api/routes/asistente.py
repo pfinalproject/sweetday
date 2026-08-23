@@ -16,7 +16,7 @@ from app.schemas.asistente import PreguntaEntrada, RespuestaAsistente
 router = APIRouter(
     prefix="/api/asistente",
     tags=["asistente"],
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 
 DIAS_TENDENCIA = 30

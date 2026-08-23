@@ -19,7 +19,7 @@ def listar(activo: bool = True, db: Session = Depends(get_db)):
     "",
     response_model=ProveedorSalida,
     status_code=201,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def crear(datos: ProveedorCrear, db: Session = Depends(get_db)):
     proveedor = Proveedor(**datos.model_dump())
@@ -32,7 +32,7 @@ def crear(datos: ProveedorCrear, db: Session = Depends(get_db)):
 @router.put(
     "/{proveedor_id}",
     response_model=ProveedorSalida,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def actualizar(proveedor_id: str, datos: ProveedorCrear, db: Session = Depends(get_db)):
     proveedor = db.get(Proveedor, proveedor_id)
@@ -49,7 +49,7 @@ def actualizar(proveedor_id: str, datos: ProveedorCrear, db: Session = Depends(g
 @router.delete(
     "/{proveedor_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def desactivar(proveedor_id: str, db: Session = Depends(get_db)):
     proveedor = db.get(Proveedor, proveedor_id)

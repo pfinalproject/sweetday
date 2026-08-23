@@ -10,7 +10,7 @@ from app.schemas.usuario import UsuarioCrear, UsuarioSalida
 router = APIRouter(
     prefix="/api/usuarios",
     tags=["usuarios"],
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 
 

@@ -16,7 +16,7 @@ from app.schemas.reporte import ProductoTendencia, ResumenFinanciero
 router = APIRouter(
     prefix="/api/reportes",
     tags=["reportes"],
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 
 

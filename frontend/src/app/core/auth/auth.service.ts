@@ -17,7 +17,7 @@ export class AuthService {
   private readonly usuarioSignal = signal<UsuarioActual | null>(null);
 
   readonly usuario = this.usuarioSignal.asReadonly();
-  readonly esDuena = computed(() => this.usuarioSignal()?.rol === 'DUENA');
+  readonly esAdmin = computed(() => this.usuarioSignal()?.rol === 'ADMIN');
   readonly autenticado = computed(() => this.usuarioSignal() !== null);
 
   constructor(

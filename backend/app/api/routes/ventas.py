@@ -34,7 +34,7 @@ def _a_salida(venta: Venta) -> VentaSalida:
     )
 
 
-@router.get("", response_model=list[VentaSalida], dependencies=[Depends(requiere_rol(RolUsuario.DUENA))])
+@router.get("", response_model=list[VentaSalida], dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))])
 def listar(desde: date | None = None, hasta: date | None = None, db: Session = Depends(get_db)):
     query = db.query(Venta).options(
         joinedload(Venta.usuario),
@@ -55,7 +55,7 @@ def crear(datos: VentaCrear, db: Session = Depends(get_db), usuario: Usuario = D
     if caja_abierta is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No hay una caja abierta. Pide a la Dueña que abra la caja antes de vender.",
+            detail="No hay una caja abierta. Pide al Admin que abra la caja antes de vender.",
         )
 
     productos_por_id: dict[str, Producto] = {}

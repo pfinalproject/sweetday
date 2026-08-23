@@ -26,7 +26,7 @@ def actual(db: Session = Depends(get_db)):
     "/abrir",
     response_model=TurnoCajaSalida,
     status_code=201,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def abrir(datos: TurnoCajaAbrir, db: Session = Depends(get_db), usuario: Usuario = Depends(get_usuario_actual)):
     if _turno_abierto(db) is not None:
@@ -42,7 +42,7 @@ def abrir(datos: TurnoCajaAbrir, db: Session = Depends(get_db), usuario: Usuario
 @router.post(
     "/{turno_id}/cerrar",
     response_model=TurnoCajaSalida,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def cerrar(turno_id: str, datos: TurnoCajaCerrar, db: Session = Depends(get_db)):
     turno = db.get(TurnoCaja, turno_id)

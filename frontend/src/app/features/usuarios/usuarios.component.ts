@@ -74,6 +74,6 @@ export class UsuariosComponent implements OnInit {
   }
 
   etiquetaRol(rol: RolUsuario): string {
-    return rol === 'DUENA' ? 'Dueña' : 'Empleada';
+    return rol === 'ADMIN' ? 'Admin' : 'Empleada';
   }
 }

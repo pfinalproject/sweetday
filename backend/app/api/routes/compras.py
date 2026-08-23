@@ -11,7 +11,7 @@ from app.schemas.compra import CompraCrear, CompraSalida
 router = APIRouter(
     prefix="/api/compras",
     tags=["compras"],
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 
 

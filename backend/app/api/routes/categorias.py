@@ -19,7 +19,7 @@ def listar(activo: bool = True, db: Session = Depends(get_db)):
     "",
     response_model=CategoriaSalida,
     status_code=201,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def crear(datos: CategoriaCrear, db: Session = Depends(get_db)):
     categoria = Categoria(nombre=datos.nombre)
@@ -32,7 +32,7 @@ def crear(datos: CategoriaCrear, db: Session = Depends(get_db)):
 @router.put(
     "/{categoria_id}",
     response_model=CategoriaSalida,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def actualizar(categoria_id: str, datos: CategoriaCrear, db: Session = Depends(get_db)):
     categoria = db.get(Categoria, categoria_id)
@@ -48,7 +48,7 @@ def actualizar(categoria_id: str, datos: CategoriaCrear, db: Session = Depends(g
 @router.delete(
     "/{categoria_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(requiere_rol(RolUsuario.DUENA))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
 def desactivar(categoria_id: str, db: Session = Depends(get_db)):
     categoria = db.get(Categoria, categoria_id)

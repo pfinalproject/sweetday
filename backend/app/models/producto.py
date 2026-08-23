@@ -23,7 +23,7 @@ class Producto(Base):
     imagen_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    # Foto real subida por la duena (para reconocimiento visual) y su embedding CLIP/ResNet.
+    # Foto real subida por el Admin (para reconocimiento visual) y su embedding CLIP/ResNet.
     imagen_datos: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     imagen_mime: Mapped[str | None] = mapped_column(String(100), nullable=True)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(DIMENSION_EMBEDDING), nullable=True)

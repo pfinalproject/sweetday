@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 class RolUsuario(str, enum.Enum):
-    DUENA = "DUENA"
+    ADMIN = "ADMIN"
     EMPLEADA = "EMPLEADA"
 
 

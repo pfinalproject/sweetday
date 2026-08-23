@@ -1,4 +1,4 @@
-"""Crea la cuenta inicial de la Duena si todavia no existe ningun usuario.
+"""Crea la cuenta inicial de Admin si todavia no existe ningun usuario.
 
 Uso: python -m app.seed
 """
@@ -15,15 +15,15 @@ def run():
             print("Ya existen usuarios, no se crea ninguno nuevo.")
             return
 
-        duena = Usuario(
+        admin = Usuario(
             nombre="Administradora",
             email="duena@sweetday.com",
             hash_password=hash_password("cambiar123"),
-            rol=RolUsuario.DUENA,
+            rol=RolUsuario.ADMIN,
         )
-        db.add(duena)
+        db.add(admin)
         db.commit()
-        print(f"Usuario Duena creado: {duena.email} / cambiar123 (cambiar en el primer ingreso)")
+        print(f"Usuario Admin creado: {admin.email} / cambiar123 (cambiar en el primer ingreso)")
     finally:
         db.close()
 

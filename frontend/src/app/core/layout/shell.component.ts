@@ -13,16 +13,16 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { path: '/dashboard', label: 'Dashboard', icon: 'grid', roles: ['DUENA'] },
-  { path: '/categorias', label: 'Categorías', icon: 'tag', roles: ['DUENA'] },
-  { path: '/productos', label: 'Productos', icon: 'box', roles: ['DUENA'] },
-  { path: '/proveedores', label: 'Proveedores', icon: 'truck', roles: ['DUENA'] },
-  { path: '/ventas', label: 'Ventas', icon: 'cart', roles: ['DUENA', 'EMPLEADA'] },
-  { path: '/historial-ventas', label: 'Historial de Ventas', icon: 'clock', roles: ['DUENA'] },
-  { path: '/alertas', label: 'Alertas', icon: 'bell', roles: ['DUENA'] },
-  { path: '/usuarios', label: 'Usuarios', icon: 'user', roles: ['DUENA'] },
-  { path: '/reportes', label: 'Reportes', icon: 'chart', roles: ['DUENA'] },
-  { path: '/asistente', label: 'Asistente', icon: 'chat', roles: ['DUENA'] },
+  { path: '/dashboard', label: 'Dashboard', icon: 'grid', roles: ['ADMIN'] },
+  { path: '/categorias', label: 'Categorías', icon: 'tag', roles: ['ADMIN'] },
+  { path: '/productos', label: 'Productos', icon: 'box', roles: ['ADMIN'] },
+  { path: '/proveedores', label: 'Proveedores', icon: 'truck', roles: ['ADMIN'] },
+  { path: '/ventas', label: 'Ventas', icon: 'cart', roles: ['ADMIN', 'EMPLEADA'] },
+  { path: '/historial-ventas', label: 'Historial de Ventas', icon: 'clock', roles: ['ADMIN'] },
+  { path: '/alertas', label: 'Alertas', icon: 'bell', roles: ['ADMIN'] },
+  { path: '/usuarios', label: 'Usuarios', icon: 'user', roles: ['ADMIN'] },
+  { path: '/reportes', label: 'Reportes', icon: 'chart', roles: ['ADMIN'] },
+  { path: '/asistente', label: 'Asistente', icon: 'chat', roles: ['ADMIN'] },
 ];
 
 @Component({
@@ -37,7 +37,7 @@ export class ShellComponent {
   private readonly alertasService = inject(AlertasService);
 
   readonly usuario = this.auth.usuario;
-  readonly esDuena = this.auth.esDuena;
+  readonly esAdmin = this.auth.esAdmin;
   readonly menuAbierto = signal(false);
   readonly panelAlertasAbierto = signal(false);
 
@@ -45,7 +45,7 @@ export class ShellComponent {
   readonly totalAlertas = this.alertasService.total;
 
   constructor() {
-    if (this.auth.esDuena()) {
+    if (this.auth.esAdmin()) {
       this.alertasService.iniciar();
     }
   }

@@ -28,7 +28,7 @@ export class VentasComponent implements OnInit {
   private readonly productosService = inject(ProductosService);
   private readonly ventasService = inject(VentasService);
 
-  readonly esDuena = this.auth.esDuena;
+  readonly esAdmin = this.auth.esAdmin;
 
   readonly cargandoCaja = signal(true);
   readonly caja = signal<TurnoCaja | null>(null);

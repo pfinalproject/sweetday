@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 class TurnoCaja(Base):
-    """Apertura y cierre de caja. Solo la Duena puede crearlos (ver deps.requiere_rol)."""
+    """Apertura y cierre de caja. Solo el Admin puede crearlos (ver deps.requiere_rol)."""
 
     __tablename__ = "turnos_caja"
 

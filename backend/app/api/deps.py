@@ -36,8 +36,8 @@ def get_usuario_actual(
 def requiere_rol(*roles_permitidos: RolUsuario):
     """Guard de dependencia: solo deja pasar a los roles indicados.
 
-    Uso: Depends(requiere_rol(RolUsuario.DUENA)) protege endpoints
-    reservados a la Duena (ej. apertura/cierre de caja, reportes).
+    Uso: Depends(requiere_rol(RolUsuario.ADMIN)) protege endpoints
+    reservados al Admin (ej. apertura/cierre de caja, reportes).
     """
 
     def dependencia(usuario: Usuario = Depends(get_usuario_actual)) -> Usuario:

@@ -10,7 +10,7 @@
 } @else if (!caja()) {
   <div class="caja-cerrada">
     <h3>La caja está cerrada</h3>
-    @if (esDuena()) {
+    @if (esAdmin()) {
       @if (!mostrarAbrirCaja()) {
         <button class="btn-primary" type="button" (click)="mostrarAbrirCaja.set(true)">Abrir caja</button>
       } @else {
@@ -31,13 +31,13 @@
         </div>
       }
     } @else {
-      <p class="muted">Pide a la Dueña que abra la caja para poder vender.</p>
+      <p class="muted">Pide al Admin que abra la caja para poder vender.</p>
     }
   </div>
 } @else {
   <div class="caja-bar">
     <span class="badge">Caja abierta · apertura Bs {{ caja()!.monto_apertura }}</span>
-    @if (esDuena()) {
+    @if (esAdmin()) {
       @if (!mostrarCerrarCaja()) {
         <button class="btn-outline" type="button" (click)="mostrarCerrarCaja.set(true)">Cerrar caja</button>
       } @else {

@@ -31,7 +31,7 @@ export class LoginComponent {
         this.auth.cargarUsuarioActual().subscribe({
           next: (usuario) => {
             this.cargando.set(false);
-            const destino = usuario.rol === 'DUENA' ? '/dashboard' : '/ventas';
+            const destino = usuario.rol === 'ADMIN' ? '/dashboard' : '/ventas';
             this.router.navigateByUrl(destino);
           },
           error: () => this.manejarError(),
