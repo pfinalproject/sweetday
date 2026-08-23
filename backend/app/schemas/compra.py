@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class CompraCrear(BaseModel):
     producto_id: uuid.UUID
     cantidad: int = Field(gt=0)
-    costo_unitario: Decimal
+    costo_unitario: Decimal = Field(ge=0)
 
 
 class CompraSalida(BaseModel):

@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { Proveedor } from '../../shared/models/producto.model';
+import { nombreOpcionalValido, nombreValido, telefonoValido } from '../../shared/validacion';
 import { ProveedorForm, ProveedoresService } from './proveedores.service';
 
 const FORM_VACIO: ProveedorForm = { nombre: '', contacto: null, telefono: null };
@@ -20,10 +22,14 @@ export class ProveedoresComponent implements OnInit {
   readonly modalAbierto = signal(false);
   readonly guardando = signal(false);
   readonly editando = signal<Proveedor | null>(null);
+  readonly errorForm = signal<string | null>(null);
 
   form: ProveedorForm = { ...FORM_VACIO };
 
-  constructor(private readonly proveedoresService: ProveedoresService) {}
+  constructor(
+    private readonly proveedoresService: ProveedoresService,
+    private readonly confirmService: ConfirmService,
+  ) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -46,19 +52,31 @@ export class ProveedoresComponent implements OnInit {
   abrirCrear(): void {
     this.editando.set(null);
     this.form = { ...FORM_VACIO };
+    this.errorForm.set(null);
     this.modalAbierto.set(true);
   }
 
   abrirEditar(proveedor: Proveedor): void {
     this.editando.set(proveedor);
     this.form = { nombre: proveedor.nombre, contacto: proveedor.contacto, telefono: proveedor.telefono };
+    this.errorForm.set(null);
     this.modalAbierto.set(true);
   }
 
   guardar(): void {
-    if (!this.form.nombre.trim()) {
+    if (!nombreValido(this.form.nombre)) {
+      this.errorForm.set('Ingresa un nombre válido (sin símbolos raros, máximo 120 caracteres).');
       return;
     }
+    if (!nombreOpcionalValido(this.form.contacto)) {
+      this.errorForm.set('El contacto no puede tener símbolos raros.');
+      return;
+    }
+    if (!telefonoValido(this.form.telefono)) {
+      this.errorForm.set('El teléfono solo puede tener dígitos, espacios, +, - y paréntesis.');
+      return;
+    }
+    this.errorForm.set(null);
     this.guardando.set(true);
     const editando = this.editando();
     const peticion = editando
@@ -71,12 +89,19 @@ export class ProveedoresComponent implements OnInit {
         this.modalAbierto.set(false);
         this.cargar();
       },
-      error: () => this.guardando.set(false),
+      error: () => {
+        this.guardando.set(false);
+        this.errorForm.set('No se pudo guardar el proveedor.');
+      },
     });
   }
 
-  desactivar(proveedor: Proveedor): void {
-    if (!confirm(`¿Desactivar al proveedor "${proveedor.nombre}"?`)) {
+  async desactivar(proveedor: Proveedor): Promise<void> {
+    const confirmado = await this.confirmService.pedir(
+      `¿Desactivar al proveedor "${proveedor.nombre}"?`,
+      'Desactivar proveedor',
+    );
+    if (!confirmado) {
       return;
     }
     this.proveedoresService.desactivar(proveedor.id).subscribe(() => this.cargar());

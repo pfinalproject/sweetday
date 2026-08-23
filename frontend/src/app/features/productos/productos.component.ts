@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { CategoriasService } from '../categorias/categorias.service';
 import { ProveedoresService } from '../proveedores/proveedores.service';
 import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { Categoria, Producto, ProductoReconocido, Proveedor } from '../../shared/models/producto.model';
+import { nombreValido } from '../../shared/validacion';
 import { ComprasService } from './compras.service';
 import { OpenFoodFactsService } from './open-food-facts.service';
 import { ProductoForm, ProductosService } from './productos.service';
@@ -76,6 +78,7 @@ export class ProductosComponent implements OnInit {
     private readonly proveedoresService: ProveedoresService,
     private readonly comprasService: ComprasService,
     private readonly openFoodFacts: OpenFoodFactsService,
+    private readonly confirmService: ConfirmService,
   ) {}
 
   ngOnInit(): void {
@@ -138,14 +141,18 @@ export class ProductosComponent implements OnInit {
   }
 
   guardar(): void {
+    if (!nombreValido(this.form.nombre)) {
+      this.errorForm.set('Ingresa un nombre válido (sin símbolos raros, máximo 120 caracteres).');
+      return;
+    }
     if (
-      !this.form.nombre.trim() ||
       !this.form.categoria_id ||
       !this.form.proveedor_id ||
       this.form.precio <= 0 ||
-      this.form.costo < 0
+      this.form.costo < 0 ||
+      this.form.stock < 0
     ) {
-      this.errorForm.set('Completa nombre, categoría, proveedor, costo y un precio válido.');
+      this.errorForm.set('Completa categoría, proveedor, y un costo, precio y stock válidos (no negativos).');
       return;
     }
 
@@ -168,8 +175,9 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  desactivar(producto: Producto): void {
-    if (!confirm(`¿Desactivar "${producto.nombre}"?`)) {
+  async desactivar(producto: Producto): Promise<void> {
+    const confirmado = await this.confirmService.pedir(`¿Desactivar "${producto.nombre}"?`, 'Desactivar producto');
+    if (!confirmado) {
       return;
     }
     this.productosService.desactivar(producto.id).subscribe(() => this.cargar());

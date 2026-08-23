@@ -47,8 +47,11 @@
   <sd-modal titulo="Nueva categoría" (cerrar)="modalAbierto.set(false)">
     <label class="field">
       <span>Nombre</span>
-      <input type="text" [(ngModel)]="nombreNueva" placeholder="Ej. Souvenirs" (keyup.enter)="guardar()" />
+      <input type="text" [(ngModel)]="nombreNueva" placeholder="Ej. Souvenirs" maxlength="120" (keyup.enter)="guardar()" />
     </label>
+    @if (errorForm()) {
+      <p class="error">{{ errorForm() }}</p>
+    }
     <div class="modal-actions">
       <button class="btn-outline" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
       <button class="btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">

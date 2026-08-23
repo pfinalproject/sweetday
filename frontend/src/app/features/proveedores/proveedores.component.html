@@ -72,6 +72,9 @@
       <span>Teléfono (opcional)</span>
       <input type="text" [(ngModel)]="form.telefono" name="telefono" />
     </label>
+    @if (errorForm()) {
+      <p class="error">{{ errorForm() }}</p>
+    }
     <div class="modal-actions">
       <button class="btn-outline" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
       <button class="btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">

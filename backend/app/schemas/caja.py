@@ -2,15 +2,15 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TurnoCajaAbrir(BaseModel):
-    monto_apertura: Decimal
+    monto_apertura: Decimal = Field(ge=0)
 
 
 class TurnoCajaCerrar(BaseModel):
-    monto_cierre: Decimal
+    monto_cierre: Decimal = Field(ge=0)
 
 
 class TurnoCajaSalida(BaseModel):

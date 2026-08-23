@@ -3,6 +3,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { RolUsuario } from '../../shared/models/usuario.model';
+import { nombreValido } from '../../shared/validacion';
 import { Usuario, UsuarioForm, UsuariosService } from './usuarios.service';
 
 const FORM_VACIO: UsuarioForm = { nombre: '', email: '', password: '', rol: 'EMPLEADA' };
@@ -50,8 +51,12 @@ export class UsuariosComponent implements OnInit {
   }
 
   guardar(): void {
-    if (!this.form.nombre.trim() || !this.form.email.trim() || this.form.password.length < 6) {
-      this.errorForm.set('Completa nombre, email y una contraseña de al menos 6 caracteres.');
+    if (!nombreValido(this.form.nombre)) {
+      this.errorForm.set('Ingresa un nombre válido (sin símbolos raros, máximo 120 caracteres).');
+      return;
+    }
+    if (!this.form.email.trim() || this.form.password.length < 6) {
+      this.errorForm.set('Completa un email y una contraseña de al menos 6 caracteres.');
       return;
     }
 
