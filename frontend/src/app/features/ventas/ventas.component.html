@@ -59,13 +59,24 @@
   <div class="pos">
     <div class="pos-productos">
       <div class="pos-buscador">
-        <input class="search" type="search" placeholder="Buscar producto..." [(ngModel)]="busqueda" />
+        <input
+          class="search"
+          type="search"
+          placeholder="Buscar producto..."
+          [ngModel]="busqueda()"
+          (ngModelChange)="onBusquedaChange($event)"
+        />
         <button class="btn-outline" type="button" (click)="mostrarScanner.set(true)">Escanear</button>
         <button class="btn-outline" type="button" (click)="abrirReconocer()">Sin código</button>
       </div>
       <div class="grid-productos">
-        @for (producto of productosFiltrados(); track producto.id) {
+        @for (producto of productosPagina(); track producto.id) {
           <button class="tarjeta-producto" type="button" (click)="agregarAlCarrito(producto)">
+            @if (producto.tiene_foto) {
+              <img class="foto" [src]="fotoUrl(producto)" alt="" loading="lazy" />
+            } @else {
+              <div class="foto foto-vacia"></div>
+            }
             <strong>{{ producto.nombre }}</strong>
             <span>Bs {{ producto.precio }}</span>
             <span class="muted">Stock: {{ producto.stock }}</span>
@@ -74,6 +85,37 @@
           <p class="muted">No hay productos disponibles para vender.</p>
         }
       </div>
+
+      @if (totalPaginas() > 1) {
+        <div class="paginador">
+          <button class="icon-btn" type="button" [disabled]="paginaSegura() === 1" (click)="paginaAnterior()">
+            ‹
+          </button>
+          @if (numerosPagina()[0] > 1) {
+            <button type="button" (click)="irAPagina(1)">1</button>
+            @if (numerosPagina()[0] > 2) {
+              <span class="muted">…</span>
+            }
+          }
+          @for (n of numerosPagina(); track n) {
+            <button type="button" [class.activo]="n === paginaSegura()" (click)="irAPagina(n)">{{ n }}</button>
+          }
+          @if (numerosPagina()[numerosPagina().length - 1] < totalPaginas()) {
+            @if (numerosPagina()[numerosPagina().length - 1] < totalPaginas() - 1) {
+              <span class="muted">…</span>
+            }
+            <button type="button" (click)="irAPagina(totalPaginas())">{{ totalPaginas() }}</button>
+          }
+          <button
+            class="icon-btn"
+            type="button"
+            [disabled]="paginaSegura() === totalPaginas()"
+            (click)="paginaSiguiente()"
+          >
+            ›
+          </button>
+        </div>
+      }
     </div>
 
     <div class="pos-carrito">
@@ -84,6 +126,11 @@
         <div class="lineas">
           @for (linea of carrito(); track linea.producto.id) {
             <div class="linea">
+              @if (linea.producto.tiene_foto) {
+                <img class="miniatura" [src]="fotoUrl(linea.producto)" alt="" loading="lazy" />
+              } @else {
+                <div class="miniatura miniatura-vacia"></div>
+              }
               <div class="linea-info">
                 <strong>{{ linea.producto.nombre }}</strong>
                 <span class="muted">Bs {{ linea.producto.precio }} c/u</span>
@@ -109,6 +156,10 @@
       }
     </div>
   </div>
+}
+
+@if (toast(); as mensaje) {
+  <div class="toast-agregado">✓ {{ mensaje }}</div>
 }
 
 @if (ticket()) {

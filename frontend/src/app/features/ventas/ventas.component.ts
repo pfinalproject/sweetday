@@ -50,13 +50,39 @@ export class VentasComponent implements OnInit {
 
   montoApertura: number | null = null;
   montoCierre: number | null = null;
-  busqueda = '';
+  readonly busqueda = signal('');
+  readonly toast = signal<string | null>(null);
+  private toastTimeoutId?: ReturnType<typeof setTimeout>;
+
+  readonly porPagina = 20;
+  readonly paginaActual = signal(1);
 
   readonly productosFiltrados = computed(() => {
-    const termino = this.busqueda.trim().toLowerCase();
+    const termino = this.busqueda().trim().toLowerCase();
     return this.productos()
       .filter((p) => p.stock > 0)
       .filter((p) => !termino || p.nombre.toLowerCase().includes(termino));
+  });
+
+  readonly totalPaginas = computed(() =>
+    Math.max(1, Math.ceil(this.productosFiltrados().length / this.porPagina)),
+  );
+
+  readonly paginaSegura = computed(() => Math.min(this.paginaActual(), this.totalPaginas()));
+
+  readonly productosPagina = computed(() => {
+    const inicio = (this.paginaSegura() - 1) * this.porPagina;
+    return this.productosFiltrados().slice(inicio, inicio + this.porPagina);
+  });
+
+  readonly numerosPagina = computed(() => {
+    const total = this.totalPaginas();
+    const actual = this.paginaSegura();
+    const ventana = 5;
+    let inicio = Math.max(1, actual - Math.floor(ventana / 2));
+    const fin = Math.min(total, inicio + ventana - 1);
+    inicio = Math.max(1, fin - ventana + 1);
+    return Array.from({ length: fin - inicio + 1 }, (_, i) => inicio + i);
   });
 
   readonly total = computed(() =>
@@ -127,13 +153,40 @@ export class VentasComponent implements OnInit {
     const carrito = this.carrito();
     const existente = carrito.find((l) => l.producto.id === producto.id);
     if (existente) {
-      if (existente.cantidad < producto.stock) {
-        existente.cantidad += 1;
-        this.carrito.set([...carrito]);
+      if (existente.cantidad >= producto.stock) {
+        this.error.set(`No hay más stock disponible de "${producto.nombre}".`);
+        return;
       }
-      return;
+      existente.cantidad += 1;
+      this.carrito.set([...carrito]);
+    } else {
+      this.carrito.set([...carrito, { producto, cantidad: 1 }]);
     }
-    this.carrito.set([...carrito, { producto, cantidad: 1 }]);
+    this.error.set(null);
+    this.mostrarToast(`${producto.nombre} agregado`);
+  }
+
+  private mostrarToast(mensaje: string): void {
+    this.toast.set(mensaje);
+    clearTimeout(this.toastTimeoutId);
+    this.toastTimeoutId = setTimeout(() => this.toast.set(null), 1600);
+  }
+
+  onBusquedaChange(valor: string): void {
+    this.busqueda.set(valor);
+    this.paginaActual.set(1);
+  }
+
+  irAPagina(pagina: number): void {
+    this.paginaActual.set(Math.min(Math.max(1, pagina), this.totalPaginas()));
+  }
+
+  paginaAnterior(): void {
+    this.irAPagina(this.paginaSegura() - 1);
+  }
+
+  paginaSiguiente(): void {
+    this.irAPagina(this.paginaSegura() + 1);
   }
 
   cambiarCantidad(linea: LineaCarrito, delta: number): void {
@@ -221,6 +274,7 @@ export class VentasComponent implements OnInit {
         this.procesandoCobro.set(false);
         this.ticket.set(venta);
         this.carrito.set([]);
+        this.paginaActual.set(1);
         this.productosService.listar(true).subscribe((productos) => this.productos.set(productos));
       },
       error: (err) => {
