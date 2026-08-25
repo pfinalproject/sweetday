@@ -89,6 +89,10 @@ export class VentasComponent implements OnInit {
     this.carrito().reduce((acc, linea) => acc + Number(linea.producto.precio) * linea.cantidad, 0),
   );
 
+  readonly cantidadItems = computed(() => this.carrito().reduce((acc, linea) => acc + linea.cantidad, 0));
+
+  readonly carritoAbierto = signal(false);
+
   ngOnInit(): void {
     this.cargarCaja();
     this.productosService.listar(true).subscribe((productos) => this.productos.set(productos));
@@ -274,6 +278,7 @@ export class VentasComponent implements OnInit {
         this.procesandoCobro.set(false);
         this.ticket.set(venta);
         this.carrito.set([]);
+        this.carritoAbierto.set(false);
         this.paginaActual.set(1);
         this.productosService.listar(true).subscribe((productos) => this.productos.set(productos));
       },

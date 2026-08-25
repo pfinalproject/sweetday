@@ -118,42 +118,65 @@
       }
     </div>
 
-    <div class="pos-carrito">
-      <h3>Carrito</h3>
-      @if (carrito().length === 0) {
-        <p class="muted">Toca un producto para agregarlo.</p>
-      } @else {
-        <div class="lineas">
-          @for (linea of carrito(); track linea.producto.id) {
-            <div class="linea">
-              @if (linea.producto.tiene_foto) {
-                <img class="miniatura" [src]="fotoUrl(linea.producto)" alt="" loading="lazy" />
-              } @else {
-                <div class="miniatura miniatura-vacia"></div>
-              }
-              <div class="linea-info">
-                <strong>{{ linea.producto.nombre }}</strong>
-                <span class="muted">Bs {{ linea.producto.precio }} c/u</span>
-              </div>
-              <div class="linea-cantidad">
-                <button type="button" (click)="cambiarCantidad(linea, -1)">−</button>
-                <span>{{ linea.cantidad }}</span>
-                <button type="button" (click)="cambiarCantidad(linea, 1)">+</button>
-              </div>
-              <button class="icon-btn" type="button" title="Quitar" (click)="quitarLinea(linea)">
-                <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
-              </button>
-            </div>
-          }
-        </div>
-        <div class="total-row">
-          <span>Total</span>
+    <div class="pos-carrito" [class.abierto]="carritoAbierto()">
+      <button
+        type="button"
+        class="carrito-resumen"
+        [attr.aria-expanded]="carritoAbierto()"
+        (click)="carritoAbierto.set(!carritoAbierto())"
+      >
+        <span class="carrito-resumen-info">
           <strong>Bs {{ total().toFixed(2) }}</strong>
-        </div>
-        <button class="btn-primary cobrar" type="button" [disabled]="procesandoCobro()" (click)="cobrar()">
-          {{ procesandoCobro() ? 'Procesando...' : 'Cobrar' }}
-        </button>
-      }
+          <span class="muted">
+            {{ carrito().length === 0 ? 'Carrito vacío' : cantidadItems() + ' producto(s)' }}
+          </span>
+        </span>
+        <span class="chevron" aria-hidden="true">{{ carritoAbierto() ? '⌄' : '⌃' }}</span>
+      </button>
+
+      <div class="carrito-detalle">
+        <h3>Carrito</h3>
+        @if (carrito().length === 0) {
+          <p class="muted">Toca un producto para agregarlo.</p>
+        } @else {
+          <div class="lineas">
+            @for (linea of carrito(); track linea.producto.id) {
+              <div class="linea">
+                @if (linea.producto.tiene_foto) {
+                  <img class="miniatura" [src]="fotoUrl(linea.producto)" alt="" loading="lazy" />
+                } @else {
+                  <div class="miniatura miniatura-vacia"></div>
+                }
+                <div class="linea-info">
+                  <strong>{{ linea.producto.nombre }}</strong>
+                  <span class="muted">Bs {{ linea.producto.precio }} c/u</span>
+                </div>
+                <div class="linea-cantidad">
+                  <button type="button" (click)="cambiarCantidad(linea, -1)">−</button>
+                  <span>{{ linea.cantidad }}</span>
+                  <button type="button" (click)="cambiarCantidad(linea, 1)">+</button>
+                </div>
+                <button class="icon-btn" type="button" title="Quitar" (click)="quitarLinea(linea)">
+                  <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                </button>
+              </div>
+            }
+          </div>
+          <div class="total-row">
+            <span>Total</span>
+            <strong>Bs {{ total().toFixed(2) }}</strong>
+          </div>
+        }
+      </div>
+
+      <button
+        class="btn-primary cobrar"
+        type="button"
+        [disabled]="procesandoCobro() || carrito().length === 0"
+        (click)="cobrar()"
+      >
+        {{ procesandoCobro() ? 'Procesando...' : 'Cobrar' }}
+      </button>
     </div>
   </div>
 }
