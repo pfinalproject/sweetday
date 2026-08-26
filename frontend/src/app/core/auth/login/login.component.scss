@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+
 .login-shell {
   min-height: 100vh;
   display: flex;
@@ -16,8 +18,22 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 32px;
+  padding: 28px 24px;
   box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+  transition: padding 0.2s ease, max-width 0.2s ease;
+
+  // Tablet+
+  @media (min-width: 480px) {
+    max-width: 380px;
+    padding: 36px 32px;
+    gap: 20px;
+  }
+
+  // Desktop
+  @media (min-width: 1024px) {
+    max-width: 400px;
+    padding: 40px;
+  }
 }
 
 .brand {
@@ -27,6 +43,7 @@
   margin-bottom: 6px;
 
   .brand-mark {
+    flex-shrink: 0;
     width: 44px;
     height: 44px;
     border-radius: 14px;
@@ -39,21 +56,31 @@
     color: #fff;
   }
 
+  .brand-text {
+    min-width: 0;
+  }
+
   h1 {
-    font-size: 20px;
+    margin: 0;
+    font-size: clamp(19px, 4vw, 22px);
     font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
 
     em {
-      font-style: normal;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 600;
       background: var(--gradient);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      letter-spacing: 0.2px;
     }
   }
 
   p {
-    margin: 0;
+    margin: 2px 0 0;
     font-size: 11px;
     color: var(--text-faint);
   }
@@ -68,16 +95,21 @@ label {
 }
 
 input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
   color: var(--text);
   font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
-  &:focus {
+  &:focus-visible {
     outline: none;
     border-color: var(--pink);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pink) 25%, transparent);
   }
 }
 
@@ -90,11 +122,27 @@ input {
 button[type='submit'] {
   border: none;
   border-radius: 8px;
+  min-height: 46px;
   padding: 11px;
   background: var(--gradient);
   color: #fff;
   font-weight: 600;
   font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.92;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--pink);
+    outline-offset: 2px;
+  }
 
   &:disabled {
     opacity: 0.6;

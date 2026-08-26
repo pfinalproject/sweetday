@@ -1,8 +1,8 @@
 <div class="login-shell">
   <form class="login-card" (ngSubmit)="onSubmit()">
     <div class="brand">
-      <span class="brand-mark">SD</span>
-      <div>
+      <span class="brand-mark" aria-hidden="true">SD</span>
+      <div class="brand-text">
         <h1>Sweet<em>Day</em></h1>
         <p>Sistema Inteligente</p>
       </div>
@@ -19,11 +19,11 @@
     </label>
 
     @if (error()) {
-      <p class="error">{{ error() }}</p>
+      <p class="error" role="alert" aria-live="assertive">{{ error() }}</p>
     }
 
     <button type="submit" [disabled]="cargando()">
-      {{ cargando() ? 'Ingresando...' : 'Ingresar' }}
+      <span class="btn-label">{{ cargando() ? 'Ingresando...' : 'Ingresar' }}</span>
     </button>
   </form>
 </div>
