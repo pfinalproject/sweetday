@@ -3,86 +3,143 @@
 .login-shell {
   min-height: 100vh;
   display: flex;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.glow {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+
+  &-top {
+    top: -160px;
+    left: -160px;
+    background: color-mix(in srgb, var(--pink) 20%, transparent);
+  }
+
+  &-bottom {
+    bottom: -160px;
+    right: -160px;
+    background: color-mix(in srgb, var(--purple, #a855f7) 20%, transparent);
+  }
+}
+
+// Columna branding (solo desktop)
+.brand-column {
+  display: none;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  position: relative;
+  z-index: 1;
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
+}
+
+.divider {
+  display: none;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 80px 0;
+
+  @media (min-width: 1024px) {
+    display: block;
+  }
+}
+
+.brand-center {
+  text-align: center;
+}
+
+.brand-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: clamp(40px, 6vw, 64px);
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1.1;
+
+  em {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+  }
+
+  &--sm {
+    font-size: clamp(32px, 10vw, 42px);
+  }
+}
+
+.brand-subtitle {
+  margin-top: 10px;
+  color: var(--text-faint);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+// Columna formulario
+.form-column {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.form-wrap {
+  width: 100%;
+  max-width: 380px;
+}
+
+.brand-mobile {
+  text-align: center;
+  margin-bottom: 24px;
+
+  @media (min-width: 1024px) {
+    display: none;
+  }
 }
 
 .login-card {
-  width: 100%;
-  max-width: 340px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius, 16px);
   padding: 28px 24px;
   box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
-  transition: padding 0.2s ease, max-width 0.2s ease;
 
-  // Tablet+
   @media (min-width: 480px) {
-    max-width: 380px;
-    padding: 36px 32px;
-    gap: 20px;
+    padding: 32px;
   }
 
-  // Desktop
-  @media (min-width: 1024px) {
-    max-width: 400px;
-    padding: 40px;
-  }
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 6px;
-
-  .brand-mark {
-    flex-shrink: 0;
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    background: var(--gradient);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .brand-text {
-    min-width: 0;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: clamp(19px, 4vw, 22px);
+  h2 {
+    margin: 0 0 4px;
+    color: var(--text);
+    font-size: 20px;
     font-weight: 600;
-    line-height: 1.2;
-    white-space: nowrap;
-
-    em {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-weight: 600;
-      background: var(--gradient);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      letter-spacing: 0.2px;
-    }
   }
 
-  p {
-    margin: 2px 0 0;
-    font-size: 11px;
+  .subtitle {
+    margin: 0 0 24px;
     color: var(--text-faint);
+    font-size: 13.5px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 }
 
@@ -91,39 +148,64 @@ label {
   flex-direction: column;
   gap: 6px;
   font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-muted);
 }
 
-input {
-  width: 100%;
-  min-height: 44px;
-  box-sizing: border-box;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  color: var(--text);
-  font-size: 14px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
 
-  &:focus-visible {
-    outline: none;
-    border-color: var(--pink);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pink) 25%, transparent);
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    width: 18px;
+    height: 18px;
+    color: var(--text-faint);
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px 10px 40px;
+    color: var(--text);
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &::placeholder {
+      color: var(--text-faint);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--pink);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--pink) 25%, transparent);
+    }
   }
 }
 
 .error {
   margin: 0;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
   color: var(--danger);
   font-size: 13px;
+  border-radius: 10px;
+  padding: 10px 14px;
 }
 
 button[type='submit'] {
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   min-height: 46px;
   padding: 11px;
+  margin-top: 4px;
   background: var(--gradient);
   color: #fff;
   font-weight: 600;
@@ -131,13 +213,8 @@ button[type='submit'] {
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.1s ease;
 
-  &:hover:not(:disabled) {
-    opacity: 0.92;
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
+  &:hover:not(:disabled) { opacity: 0.9; }
+  &:active:not(:disabled) { transform: scale(0.98); }
 
   &:focus-visible {
     outline: 2px solid var(--pink);
@@ -145,7 +222,14 @@ button[type='submit'] {
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: default;
   }
+}
+
+.footer-note {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 11px;
+  margin-top: 24px;
 }
