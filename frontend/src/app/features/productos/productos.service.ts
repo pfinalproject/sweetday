@@ -41,8 +41,8 @@ export class ProductosService {
     return this.http.put<Producto>(`${this.base}/${id}`, datos);
   }
 
-  desactivar(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  cambiarEstado(id: string, activo: boolean): Observable<Producto> {
+    return this.http.patch<Producto>(`${this.base}/${id}/estado`, null, { params: { activo } });
   }
 
   fotoUrl(id: string): string {

@@ -19,6 +19,7 @@ export class ProveedoresComponent implements OnInit {
   readonly proveedores = signal<Proveedor[]>([]);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
+  readonly vista = signal<'activos' | 'inactivos'>('activos');
   readonly modalAbierto = signal(false);
   readonly guardando = signal(false);
   readonly editando = signal<Proveedor | null>(null);
@@ -35,9 +36,14 @@ export class ProveedoresComponent implements OnInit {
     this.cargar();
   }
 
+  cambiarVista(vista: 'activos' | 'inactivos'): void {
+    this.vista.set(vista);
+    this.cargar();
+  }
+
   private cargar(): void {
     this.cargando.set(true);
-    this.proveedoresService.listar().subscribe({
+    this.proveedoresService.listar(this.vista() === 'activos').subscribe({
       next: (proveedores) => {
         this.proveedores.set(proveedores);
         this.cargando.set(false);
@@ -96,15 +102,18 @@ export class ProveedoresComponent implements OnInit {
     });
   }
 
-  async desactivar(proveedor: Proveedor): Promise<void> {
-    const confirmado = await this.confirmService.pedir(
-      `¿Desactivar al proveedor "${proveedor.nombre}"?`,
-      'Desactivar proveedor',
-    );
-    if (!confirmado) {
-      return;
+  async toggleEstado(proveedor: Proveedor): Promise<void> {
+    const activar = !proveedor.activo;
+    if (!activar) {
+      const confirmado = await this.confirmService.pedir(
+        `¿Desactivar al proveedor "${proveedor.nombre}"?`,
+        'Desactivar proveedor',
+      );
+      if (!confirmado) {
+        return;
+      }
     }
-    this.proveedoresService.desactivar(proveedor.id).subscribe(() => this.cargar());
+    this.proveedoresService.cambiarEstado(proveedor.id, activar).subscribe(() => this.cargar());
   }
 
   /** Deja solo dígitos y antepone el código de Bolivia (591) si el número no trae código de país. */

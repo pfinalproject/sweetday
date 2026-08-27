@@ -28,7 +28,7 @@ export class ProveedoresService {
     return this.http.put<Proveedor>(`${this.base}/${id}`, datos);
   }
 
-  desactivar(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  cambiarEstado(id: string, activo: boolean): Observable<Proveedor> {
+    return this.http.patch<Proveedor>(`${this.base}/${id}/estado`, null, { params: { activo } });
   }
 }

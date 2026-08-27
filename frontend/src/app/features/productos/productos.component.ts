@@ -221,12 +221,15 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  async desactivar(producto: Producto): Promise<void> {
-    const confirmado = await this.confirmService.pedir(`¿Desactivar "${producto.nombre}"?`, 'Desactivar producto');
-    if (!confirmado) {
-      return;
+  async toggleEstado(producto: Producto): Promise<void> {
+    const activar = !producto.activo;
+    if (!activar) {
+      const confirmado = await this.confirmService.pedir(`¿Desactivar "${producto.nombre}"?`, 'Desactivar producto');
+      if (!confirmado) {
+        return;
+      }
     }
-    this.productosService.desactivar(producto.id).subscribe(() => this.cargar());
+    this.productosService.cambiarEstado(producto.id, activar).subscribe(() => this.cargar());
   }
 
   fotoUrl(producto: Producto): string {

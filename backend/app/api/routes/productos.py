@@ -146,15 +146,17 @@ def obtener_foto(producto_id: str, db: Session = Depends(get_db)):
     return Response(content=producto.imagen_datos, media_type=producto.imagen_mime or "image/jpeg")
 
 
-@router.delete(
-    "/{producto_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+@router.patch(
+    "/{producto_id}/estado",
+    response_model=ProductoSalida,
     dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
-def desactivar(producto_id: str, db: Session = Depends(get_db)):
+def cambiar_estado(producto_id: str, activo: bool, db: Session = Depends(get_db)):
     producto = db.get(Producto, producto_id)
     if producto is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
 
-    producto.activo = False
+    producto.activo = activo
     db.commit()
+    db.refresh(producto)
+    return producto

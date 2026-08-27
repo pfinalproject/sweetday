@@ -46,15 +46,17 @@ def actualizar(proveedor_id: str, datos: ProveedorCrear, db: Session = Depends(g
     return proveedor
 
 
-@router.delete(
-    "/{proveedor_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+@router.patch(
+    "/{proveedor_id}/estado",
+    response_model=ProveedorSalida,
     dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
-def desactivar(proveedor_id: str, db: Session = Depends(get_db)):
+def cambiar_estado(proveedor_id: str, activo: bool, db: Session = Depends(get_db)):
     proveedor = db.get(Proveedor, proveedor_id)
     if proveedor is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proveedor no encontrado")
 
-    proveedor.activo = False
+    proveedor.activo = activo
     db.commit()
+    db.refresh(proveedor)
+    return proveedor
