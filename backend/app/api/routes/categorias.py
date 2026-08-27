@@ -45,15 +45,17 @@ def actualizar(categoria_id: str, datos: CategoriaCrear, db: Session = Depends(g
     return categoria
 
 
-@router.delete(
-    "/{categoria_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+@router.patch(
+    "/{categoria_id}/estado",
+    response_model=CategoriaSalida,
     dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
-def desactivar(categoria_id: str, db: Session = Depends(get_db)):
+def cambiar_estado(categoria_id: str, activo: bool, db: Session = Depends(get_db)):
     categoria = db.get(Categoria, categoria_id)
     if categoria is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoria no encontrada")
 
-    categoria.activo = False
+    categoria.activo = activo
     db.commit()
+    db.refresh(categoria)
+    return categoria

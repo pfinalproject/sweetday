@@ -22,7 +22,7 @@ export class CategoriasService {
     return this.http.put<Categoria>(`${this.base}/${id}`, { nombre });
   }
 
-  desactivar(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  cambiarEstado(id: string, activo: boolean): Observable<Categoria> {
+    return this.http.patch<Categoria>(`${this.base}/${id}/estado`, null, { params: { activo } });
   }
 }
