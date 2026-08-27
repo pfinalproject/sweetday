@@ -14,11 +14,11 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: 'grid', roles: ['ADMIN'] },
-  { path: '/categorias', label: 'Categorías', icon: 'tag', roles: ['ADMIN'] },
-  { path: '/productos', label: 'Productos', icon: 'box', roles: ['ADMIN'] },
+  { path: '/categorias', label: 'Categorías', icon: 'tag', roles: ['ADMIN', 'EMPLEADA'] },
+  { path: '/productos', label: 'Productos', icon: 'box', roles: ['ADMIN', 'EMPLEADA'] },
   { path: '/proveedores', label: 'Proveedores', icon: 'truck', roles: ['ADMIN'] },
   { path: '/ventas', label: 'Ventas', icon: 'cart', roles: ['ADMIN', 'EMPLEADA'] },
-  { path: '/historial-ventas', label: 'Historial de Ventas', icon: 'clock', roles: ['ADMIN'] },
+  { path: '/historial-ventas', label: 'Historial de Ventas', icon: 'clock', roles: ['ADMIN', 'EMPLEADA'] },
   { path: '/alertas', label: 'Alertas', icon: 'bell', roles: ['ADMIN'] },
   { path: '/usuarios', label: 'Usuarios', icon: 'user', roles: ['ADMIN'] },
   { path: '/reportes', label: 'Reportes', icon: 'chart', roles: ['ADMIN'] },

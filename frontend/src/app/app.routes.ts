@@ -18,10 +18,10 @@ export const routes: Routes = [
       },
       {
         path: 'categorias',
-        canActivate: [rolGuard('ADMIN')],
+        canActivate: [rolGuard('ADMIN', 'EMPLEADA')],
         loadComponent: () => import('./features/categorias/categorias.component').then((m) => m.CategoriasComponent),
       },
-      { path: 'productos', canActivate: [rolGuard('ADMIN')], loadComponent: () => import('./features/productos/productos.component').then((m) => m.ProductosComponent) },
+      { path: 'productos', canActivate: [rolGuard('ADMIN', 'EMPLEADA')], loadComponent: () => import('./features/productos/productos.component').then((m) => m.ProductosComponent) },
       {
         path: 'proveedores',
         canActivate: [rolGuard('ADMIN')],
@@ -33,7 +33,7 @@ export const routes: Routes = [
       },
       {
         path: 'historial-ventas',
-        canActivate: [rolGuard('ADMIN')],
+        canActivate: [rolGuard('ADMIN', 'EMPLEADA')],
         loadComponent: () =>
           import('./features/historial-ventas/historial-ventas.component').then((m) => m.HistorialVentasComponent),
       },
