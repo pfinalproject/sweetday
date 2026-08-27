@@ -220,8 +220,14 @@
   <sd-modal titulo="Producto sin código de barras" (cerrar)="mostrarReconocer.set(false)">
     <p class="muted">Toma una foto del producto y busco los más parecidos en el catálogo.</p>
 
-    <label class="btn-primary foto-boton">
-      {{ reconociendo() ? 'Analizando…' : 'Tomar o elegir foto' }}
+    @if (!reconociendo()) {
+      <sd-captura-foto (fotoCapturada)="procesarArchivoReconocer($event)"></sd-captura-foto>
+    } @else {
+      <p class="muted">Analizando…</p>
+    }
+
+    <label class="btn-outline foto-boton">
+      O elegir un archivo
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"

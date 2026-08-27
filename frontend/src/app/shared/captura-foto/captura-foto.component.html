@@ -1,0 +1,10 @@
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <div class="video-wrap">
+    <video #video muted playsinline></video>
+  </div>
+  <button class="btn-primary" type="button" [disabled]="!listo()" (click)="capturar()">
+    Tomar foto
+  </button>
+}

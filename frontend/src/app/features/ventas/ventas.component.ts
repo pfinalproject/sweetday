@@ -3,6 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
+import { CapturaFotoComponent } from '../../shared/captura-foto/captura-foto.component';
 import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { TicketComponent } from '../../shared/ticket/ticket.component';
@@ -20,7 +21,7 @@ interface LineaCarrito {
 @Component({
   selector: 'sd-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule, TicketComponent, BarcodeScannerComponent, ModalComponent],
+  imports: [CommonModule, FormsModule, TicketComponent, BarcodeScannerComponent, ModalComponent, CapturaFotoComponent],
   templateUrl: './ventas.component.html',
   styleUrl: './ventas.component.scss',
 })
@@ -261,7 +262,10 @@ export class VentasComponent implements OnInit {
     if (!archivo) {
       return;
     }
+    this.procesarArchivoReconocer(archivo);
+  }
 
+  procesarArchivoReconocer(archivo: File): void {
     this.reconociendo.set(true);
     this.errorReconocer.set(null);
     this.resultadosReconocer.set(null);
