@@ -3,13 +3,14 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { ConfirmService } from '../../shared/confirm/confirm.service';
+import { ModalComponent } from '../../shared/modal/modal.component';
 import { TicketComponent } from '../../shared/ticket/ticket.component';
 import { Venta, VentasService } from '../ventas/ventas.service';
 
 @Component({
   selector: 'sd-historial-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule, TicketComponent],
+  imports: [CommonModule, FormsModule, TicketComponent, ModalComponent],
   templateUrl: './historial-ventas.component.html',
 })
 export class HistorialVentasComponent implements OnInit {
@@ -20,6 +21,9 @@ export class HistorialVentasComponent implements OnInit {
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
   readonly ticket = signal<Venta | null>(null);
+  readonly ventaADevolver = signal<Venta | null>(null);
+  readonly errorDevolucion = signal<string | null>(null);
+  motivoDevolucion = '';
 
   desde = '';
   hasta = '';
@@ -69,15 +73,31 @@ export class HistorialVentasComponent implements OnInit {
     this.ventasService.anular(venta.id).subscribe(() => this.cargar());
   }
 
-  async devolver(venta: Venta): Promise<void> {
-    const confirmado = await this.confirmService.pedir(
-      `¿Registrar esta venta de Bs ${venta.total} como devolución? El stock de los productos NO se repondrá (se asume que son productos defectuosos o vencidos).`,
-      'Devolución de venta',
-      'Confirmar devolución',
-    );
-    if (!confirmado) {
+  abrirDevolucion(venta: Venta): void {
+    this.ventaADevolver.set(venta);
+    this.motivoDevolucion = '';
+    this.errorDevolucion.set(null);
+  }
+
+  cerrarDevolucion(): void {
+    this.ventaADevolver.set(null);
+  }
+
+  confirmarDevolucion(): void {
+    const venta = this.ventaADevolver();
+    const motivo = this.motivoDevolucion.trim();
+    if (!venta || !motivo) {
+      this.errorDevolucion.set('Escribe el motivo de la devolución.');
       return;
     }
-    this.ventasService.devolver(venta.id).subscribe(() => this.cargar());
+    this.ventasService.devolver(venta.id, motivo).subscribe({
+      next: () => {
+        this.cerrarDevolucion();
+        this.cargar();
+      },
+      error: (err) => {
+        this.errorDevolucion.set(err.error?.detail ?? 'No se pudo registrar la devolución.');
+      },
+    });
   }
 }

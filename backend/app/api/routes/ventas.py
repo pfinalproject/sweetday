@@ -9,7 +9,7 @@ from app.models.producto import Producto
 from app.models.turno_caja import TurnoCaja
 from app.models.usuario import RolUsuario, Usuario
 from app.models.venta import Venta, VentaDetalle
-from app.schemas.venta import VentaCrear, VentaDetalleSalida, VentaSalida
+from app.schemas.venta import VentaCrear, VentaDetalleSalida, VentaDevolucion, VentaSalida
 
 router = APIRouter(prefix="/api/ventas", tags=["ventas"])
 
@@ -25,6 +25,7 @@ def _a_salida(venta: Venta) -> VentaSalida:
         anulada_en=venta.anulada_en,
         devuelta=venta.devuelta,
         devuelta_en=venta.devuelta_en,
+        motivo_devolucion=venta.motivo_devolucion,
         detalles=[
             VentaDetalleSalida(
                 producto_id=d.producto_id,
@@ -141,12 +142,17 @@ def anular(venta_id: str, db: Session = Depends(get_db)):
 @router.patch(
     "/{venta_id}/devolver",
     response_model=VentaSalida,
-    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN, RolUsuario.EMPLEADA))],
 )
-def devolver(venta_id: str, db: Session = Depends(get_db)):
+def devolver(
+    venta_id: str,
+    datos: VentaDevolucion,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(get_usuario_actual),
+):
     """Marca la venta como devolución. A diferencia de anular, el stock de los productos
     NO se repone: se asume que son productos defectuosos o vencidos que ya no se pueden
-    volver a vender."""
+    volver a vender. La Empleada solo puede devolver sus propias ventas."""
     venta = (
         db.query(Venta)
         .options(joinedload(Venta.usuario), joinedload(Venta.detalles).joinedload(VentaDetalle.producto))
@@ -155,6 +161,8 @@ def devolver(venta_id: str, db: Session = Depends(get_db)):
     )
     if venta is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Venta no encontrada")
+    if usuario.rol == RolUsuario.EMPLEADA and venta.usuario_id != usuario.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Solo puedes devolver tus propias ventas")
     if venta.anulada:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta venta ya está anulada")
     if venta.devuelta:
@@ -162,6 +170,7 @@ def devolver(venta_id: str, db: Session = Depends(get_db)):
 
     venta.devuelta = True
     venta.devuelta_en = datetime.now(timezone.utc)
+    venta.motivo_devolucion = datos.motivo.strip()
     db.commit()
     db.refresh(venta)
     return _a_salida(venta)

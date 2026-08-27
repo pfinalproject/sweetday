@@ -59,7 +59,9 @@
                 <button class="icon-btn" type="button" title="Anular venta" (click)="cancelar(venta)">
                   <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                 </button>
-                <button class="icon-btn" type="button" title="Registrar devolución" (click)="devolver(venta)">
+              }
+              @if (!venta.anulada && !venta.devuelta) {
+                <button class="icon-btn" type="button" title="Registrar devolución" (click)="abrirDevolucion(venta)">
                   <svg viewBox="0 0 24 24"><path d="M3 10h11a5 5 0 0 1 0 10h-2"/><path d="M7 6 3 10l4 4"/></svg>
                 </button>
               }
@@ -77,4 +79,28 @@
 
 @if (ticket()) {
   <sd-ticket [venta]="ticket()!" (cerrar)="ticket.set(null)"></sd-ticket>
+}
+
+@if (ventaADevolver(); as venta) {
+  <sd-modal titulo="Registrar devolución" (cerrar)="cerrarDevolucion()">
+    <p class="muted">
+      Venta de Bs {{ venta.total }} — el stock de los productos NO se repondrá (se asume que son
+      productos defectuosos o vencidos).
+    </p>
+    <label class="field">
+      <span>Motivo de la devolución</span>
+      <textarea
+        rows="3"
+        [(ngModel)]="motivoDevolucion"
+        placeholder="Ej. Producto vencido, empaque dañado, etc."
+      ></textarea>
+    </label>
+    @if (errorDevolucion()) {
+      <p class="error">{{ errorDevolucion() }}</p>
+    }
+    <div class="modal-actions">
+      <button class="btn-outline" type="button" (click)="cerrarDevolucion()">Cancelar</button>
+      <button class="btn-primary" type="button" (click)="confirmarDevolucion()">Confirmar devolución</button>
+    </div>
+  </sd-modal>
 }

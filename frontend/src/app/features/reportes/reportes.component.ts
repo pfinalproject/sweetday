@@ -4,10 +4,11 @@ import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { CompraHistorial, ComprasService } from '../productos/compras.service';
 import { CajaService, TurnoCajaDetalle, TurnoCajaHistorial } from '../ventas/caja.service';
+import { Venta, VentasService } from '../ventas/ventas.service';
 import { ResumenFinanciero, ReportesService } from './reportes.service';
 
 type Rango = 'hoy' | 'mes' | 'todo';
-type Vista = 'resumen' | 'compras' | 'turnos';
+type Vista = 'resumen' | 'compras' | 'turnos' | 'devoluciones';
 
 @Component({
   selector: 'sd-reportes',
@@ -21,6 +22,7 @@ export class ReportesComponent implements OnInit {
   readonly resumen = signal<ResumenFinanciero | null>(null);
   readonly compras = signal<CompraHistorial[]>([]);
   readonly turnos = signal<TurnoCajaHistorial[]>([]);
+  readonly devoluciones = signal<Venta[]>([]);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
   readonly rango = signal<Rango>('mes');
@@ -32,6 +34,7 @@ export class ReportesComponent implements OnInit {
     private readonly reportesService: ReportesService,
     private readonly comprasService: ComprasService,
     private readonly cajaService: CajaService,
+    private readonly ventasService: VentasService,
     private readonly confirmService: ConfirmService,
   ) {}
 
@@ -62,6 +65,20 @@ export class ReportesComponent implements OnInit {
         },
         error: () => {
           this.error.set('No se pudo cargar el historial de compras.');
+          this.cargando.set(false);
+        },
+      });
+      return;
+    }
+
+    if (this.vista() === 'devoluciones') {
+      this.ventasService.listar(desde, hasta).subscribe({
+        next: (ventas) => {
+          this.devoluciones.set(ventas.filter((v) => v.devuelta));
+          this.cargando.set(false);
+        },
+        error: () => {
+          this.error.set('No se pudo cargar las devoluciones.');
           this.cargando.set(false);
         },
       });

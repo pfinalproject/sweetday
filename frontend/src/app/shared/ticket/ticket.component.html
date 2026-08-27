@@ -27,6 +27,20 @@
 
     <p class="ticket-gracias">¡Gracias por su compra!</p>
 
+    @if (venta.anulada) {
+      <div class="ticket-estado no-imprimir">
+        <span class="badge inactive">Anulada</span>
+        <span class="muted">{{ venta.anulada_en | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+    }
+    @if (venta.devuelta) {
+      <div class="ticket-estado no-imprimir">
+        <span class="badge warning">Devolución</span>
+        <span class="muted">{{ venta.devuelta_en | date: 'dd/MM/yyyy HH:mm' }}</span>
+        <p class="ticket-motivo">{{ venta.motivo_devolucion }}</p>
+      </div>
+    }
+
     <div class="ticket-acciones no-imprimir">
       <button class="btn-outline" type="button" (click)="cerrar.emit()">Cerrar</button>
       <button class="btn-primary" type="button" (click)="imprimir()">Imprimir</button>

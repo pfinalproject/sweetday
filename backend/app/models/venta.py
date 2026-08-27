@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +20,7 @@ class Venta(Base):
     anulada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     devuelta: Mapped[bool] = mapped_column(Boolean, default=False)
     devuelta_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    motivo_devolucion: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     usuario = relationship("Usuario")
     detalles = relationship("VentaDetalle", back_populates="venta", cascade="all, delete-orphan")

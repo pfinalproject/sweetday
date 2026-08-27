@@ -26,6 +26,7 @@ export interface Venta {
   anulada_en: string | null;
   devuelta: boolean;
   devuelta_en: string | null;
+  motivo_devolucion: string | null;
   detalles: VentaDetalle[];
 }
 
@@ -50,7 +51,7 @@ export class VentasService {
     return this.http.patch<Venta>(`${this.base}/${id}/anular`, null);
   }
 
-  devolver(id: string): Observable<Venta> {
-    return this.http.patch<Venta>(`${this.base}/${id}/devolver`, null);
+  devolver(id: string, motivo: string): Observable<Venta> {
+    return this.http.patch<Venta>(`${this.base}/${id}/devolver`, { motivo });
   }
 }

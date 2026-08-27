@@ -24,6 +24,10 @@ class VentaDetalleSalida(BaseModel):
     costo_unitario: Decimal
 
 
+class VentaDevolucion(BaseModel):
+    motivo: str = Field(min_length=1, max_length=500)
+
+
 class VentaSalida(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -36,4 +40,5 @@ class VentaSalida(BaseModel):
     anulada_en: datetime | None
     devuelta: bool
     devuelta_en: datetime | None
+    motivo_devolucion: str | None
     detalles: list[VentaDetalleSalida]

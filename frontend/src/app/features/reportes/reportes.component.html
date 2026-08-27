@@ -10,6 +10,7 @@
     <button class="tab" [class.active]="vista() === 'resumen'" type="button" (click)="cambiarVista('resumen')">Resumen</button>
     <button class="tab" [class.active]="vista() === 'compras'" type="button" (click)="cambiarVista('compras')">Compras</button>
     <button class="tab" [class.active]="vista() === 'turnos'" type="button" (click)="cambiarVista('turnos')">Turnos de caja</button>
+    <button class="tab" [class.active]="vista() === 'devoluciones'" type="button" (click)="cambiarVista('devoluciones')">Devoluciones</button>
   </div>
   <div class="spacer"></div>
   <div class="tabs">
@@ -88,6 +89,33 @@
         } @empty {
           <tr>
             <td colspan="9" class="muted">No hay compras registradas en el rango seleccionado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else if (vista() === 'devoluciones') {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cajera</th>
+          <th>Total (Bs)</th>
+          <th>Motivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (venta of devoluciones(); track venta.id) {
+          <tr>
+            <td>{{ venta.devuelta_en | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ venta.usuario_nombre }}</td>
+            <td>Bs {{ venta.total }}</td>
+            <td>{{ venta.motivo_devolucion }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="muted">No hay devoluciones registradas en el rango seleccionado.</td>
           </tr>
         }
       </tbody>

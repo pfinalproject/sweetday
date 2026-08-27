@@ -411,13 +411,15 @@ tr:last-child td {
   color: var(--text-muted);
 
   input,
-  select {
+  select,
+  textarea {
     background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px 12px;
     color: var(--text);
     font-size: 14px;
+    font-family: inherit;
 
     &:focus {
       outline: none;
