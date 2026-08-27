@@ -15,6 +15,23 @@
     object-fit: cover;
     flex: none;
     background: var(--surface-2);
+
+    &.miniatura-vacia {
+      border: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        width: 55%;
+        height: 55%;
+        fill: none;
+        stroke: var(--text-faint);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+    }
   }
 }
 

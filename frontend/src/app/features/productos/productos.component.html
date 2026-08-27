@@ -54,6 +54,15 @@
               <div class="celda-producto">
                 @if (producto.tiene_foto) {
                   <img class="miniatura" [src]="fotoUrl(producto)" alt="" loading="lazy" />
+                } @else {
+                  <div class="miniatura miniatura-vacia">
+                    <svg viewBox="0 0 24 24">
+                      <rect x="3" y="4" width="18" height="16" rx="2" />
+                      <circle cx="9" cy="10" r="2" />
+                      <path d="m21 16-5.2-5.2a2 2 0 0 0-2.8 0L5 19" />
+                      <path d="M3 3 21 21" />
+                    </svg>
+                  </div>
                 }
                 <span>{{ producto.nombre }}</span>
               </div>
@@ -78,8 +87,17 @@
                     <svg viewBox="0 0 24 24"><rect x="1" y="7" width="14" height="10" rx="1.5"/><path d="M15 10h4l4 4v3h-8Z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
                   </button>
                 }
-                <button class="btn-outline" type="button" (click)="toggleEstado(producto)">
-                  {{ producto.activo ? 'Desactivar' : 'Activar' }}
+                <button
+                  class="icon-btn"
+                  type="button"
+                  [title]="producto.activo ? 'Desactivar' : 'Activar'"
+                  (click)="toggleEstado(producto)"
+                >
+                  @if (producto.activo) {
+                    <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+                  }
                 </button>
               }
             </td>
