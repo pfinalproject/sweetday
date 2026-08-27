@@ -1,8 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
+import { CompraHistorial, ComprasService } from '../productos/compras.service';
+import { CajaService, TurnoCajaHistorial } from '../ventas/caja.service';
 import { ResumenFinanciero, ReportesService } from './reportes.service';
 
 type Rango = 'hoy' | 'mes' | 'todo';
+type Vista = 'resumen' | 'compras' | 'turnos';
 
 @Component({
   selector: 'sd-reportes',
@@ -12,14 +15,26 @@ type Rango = 'hoy' | 'mes' | 'todo';
   styleUrl: './reportes.component.scss',
 })
 export class ReportesComponent implements OnInit {
+  readonly vista = signal<Vista>('resumen');
   readonly resumen = signal<ResumenFinanciero | null>(null);
+  readonly compras = signal<CompraHistorial[]>([]);
+  readonly turnos = signal<TurnoCajaHistorial[]>([]);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
   readonly rango = signal<Rango>('mes');
 
-  constructor(private readonly reportesService: ReportesService) {}
+  constructor(
+    private readonly reportesService: ReportesService,
+    private readonly comprasService: ComprasService,
+    private readonly cajaService: CajaService,
+  ) {}
 
   ngOnInit(): void {
+    this.cargar();
+  }
+
+  cambiarVista(vista: Vista): void {
+    this.vista.set(vista);
     this.cargar();
   }
 
@@ -30,7 +45,37 @@ export class ReportesComponent implements OnInit {
 
   private cargar(): void {
     this.cargando.set(true);
+    this.error.set(null);
     const { desde, hasta } = this.calcularFechas();
+
+    if (this.vista() === 'compras') {
+      this.comprasService.listar(desde, hasta).subscribe({
+        next: (compras) => {
+          this.compras.set(compras);
+          this.cargando.set(false);
+        },
+        error: () => {
+          this.error.set('No se pudo cargar el historial de compras.');
+          this.cargando.set(false);
+        },
+      });
+      return;
+    }
+
+    if (this.vista() === 'turnos') {
+      this.cajaService.listar(desde, hasta).subscribe({
+        next: (turnos) => {
+          this.turnos.set(turnos);
+          this.cargando.set(false);
+        },
+        error: () => {
+          this.error.set('No se pudo cargar el historial de turnos de caja.');
+          this.cargando.set(false);
+        },
+      });
+      return;
+    }
+
     this.reportesService.resumen(desde, hasta).subscribe({
       next: (resumen) => {
         this.resumen.set(resumen);

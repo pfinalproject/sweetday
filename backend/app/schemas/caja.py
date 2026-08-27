@@ -22,3 +22,13 @@ class TurnoCajaSalida(BaseModel):
     monto_apertura: Decimal
     cierre_fecha: datetime | None
     monto_cierre: Decimal | None
+    total_vendido: Decimal | None = None
+
+
+class TurnoCajaHistorial(BaseModel):
+    id: uuid.UUID
+    nombre_usuario: str
+    apertura_fecha: datetime
+    monto_apertura: Decimal
+    cierre_fecha: datetime | None
+    monto_cierre: Decimal | None

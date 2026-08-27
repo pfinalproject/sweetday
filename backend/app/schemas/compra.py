@@ -22,3 +22,14 @@ class CompraSalida(BaseModel):
     costo_unitario: Decimal
     total: Decimal
     creado_en: datetime
+
+
+class CompraHistorial(BaseModel):
+    id: uuid.UUID
+    nombre_producto: str
+    nombre_proveedor: str
+    nombre_usuario: str
+    cantidad: int
+    costo_unitario: Decimal
+    total: Decimal
+    creado_en: datetime

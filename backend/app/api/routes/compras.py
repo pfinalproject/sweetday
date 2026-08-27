@@ -1,18 +1,48 @@
+from datetime import date, datetime, time, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_usuario_actual, requiere_rol
 from app.db.session import get_db
 from app.models.compra import Compra
 from app.models.producto import Producto
 from app.models.usuario import RolUsuario, Usuario
-from app.schemas.compra import CompraCrear, CompraSalida
+from app.schemas.compra import CompraCrear, CompraHistorial, CompraSalida
 
 router = APIRouter(
     prefix="/api/compras",
     tags=["compras"],
     dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
 )
+
+
+@router.get("", response_model=list[CompraHistorial])
+def listar(desde: date | None = None, hasta: date | None = None, db: Session = Depends(get_db)):
+    query = db.query(Compra).options(
+        joinedload(Compra.producto),
+        joinedload(Compra.proveedor),
+        joinedload(Compra.usuario),
+    )
+    if desde is not None:
+        query = query.filter(Compra.creado_en >= datetime.combine(desde, time.min, tzinfo=timezone.utc))
+    if hasta is not None:
+        query = query.filter(Compra.creado_en <= datetime.combine(hasta, time.max, tzinfo=timezone.utc))
+
+    compras = query.order_by(Compra.creado_en.desc()).all()
+    return [
+        CompraHistorial(
+            id=c.id,
+            nombre_producto=c.producto.nombre,
+            nombre_proveedor=c.proveedor.nombre,
+            nombre_usuario=c.usuario.nombre,
+            cantidad=c.cantidad,
+            costo_unitario=c.costo_unitario,
+            total=c.total,
+            creado_en=c.creado_en,
+        )
+        for c in compras
+    ]
 
 
 @router.post("", response_model=CompraSalida, status_code=201)

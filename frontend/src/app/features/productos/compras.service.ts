@@ -14,6 +14,17 @@ export interface Compra {
   creado_en: string;
 }
 
+export interface CompraHistorial {
+  id: string;
+  nombre_producto: string;
+  nombre_proveedor: string;
+  nombre_usuario: string;
+  cantidad: number;
+  costo_unitario: string;
+  total: string;
+  creado_en: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ComprasService {
   private readonly base = `${environment.apiUrl}/compras`;
@@ -26,5 +37,12 @@ export class ComprasService {
       cantidad,
       costo_unitario: costoUnitario,
     });
+  }
+
+  listar(desde?: string, hasta?: string): Observable<CompraHistorial[]> {
+    const params: Record<string, string> = {};
+    if (desde) params['desde'] = desde;
+    if (hasta) params['hasta'] = hasta;
+    return this.http.get<CompraHistorial[]>(this.base, { params });
   }
 }

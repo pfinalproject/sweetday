@@ -25,3 +25,4 @@ class Compra(Base):
 
     producto = relationship("Producto")
     proveedor = relationship("Proveedor")
+    usuario = relationship("Usuario")
