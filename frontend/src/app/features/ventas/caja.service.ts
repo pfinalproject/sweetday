@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { CompraHistorial } from '../productos/compras.service';
+import { Venta } from './ventas.service';
 
 export interface TurnoCaja {
   id: string;
@@ -20,6 +22,15 @@ export interface TurnoCajaHistorial {
   monto_apertura: string;
   cierre_fecha: string | null;
   monto_cierre: string | null;
+}
+
+export interface TurnoCajaDetalle {
+  turno: TurnoCajaHistorial;
+  ventas: Venta[];
+  compras: CompraHistorial[];
+  total_ingresos: string;
+  total_egresos: string;
+  ganancia_neta: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -45,5 +56,9 @@ export class CajaService {
     if (desde) params['desde'] = desde;
     if (hasta) params['hasta'] = hasta;
     return this.http.get<TurnoCajaHistorial[]>(this.base, { params });
+  }
+
+  detalle(turnoId: string): Observable<TurnoCajaDetalle> {
+    return this.http.get<TurnoCajaDetalle>(`${this.base}/${turnoId}/detalle`);
   }
 }

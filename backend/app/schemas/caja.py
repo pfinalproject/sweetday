@@ -4,6 +4,9 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.compra import CompraHistorial
+from app.schemas.venta import VentaSalida
+
 
 class TurnoCajaAbrir(BaseModel):
     monto_apertura: Decimal = Field(ge=0)
@@ -32,3 +35,12 @@ class TurnoCajaHistorial(BaseModel):
     monto_apertura: Decimal
     cierre_fecha: datetime | None
     monto_cierre: Decimal | None
+
+
+class TurnoCajaDetalle(BaseModel):
+    turno: TurnoCajaHistorial
+    ventas: list[VentaSalida]
+    compras: list[CompraHistorial]
+    total_ingresos: Decimal
+    total_egresos: Decimal
+    ganancia_neta: Decimal

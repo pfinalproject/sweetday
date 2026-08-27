@@ -58,6 +58,8 @@
           <th>Costo unitario (Bs)</th>
           <th>Total (Bs)</th>
           <th>Registrado por</th>
+          <th>Estado</th>
+          <th style="text-align:right">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -70,10 +72,22 @@
             <td>{{ compra.costo_unitario }}</td>
             <td>{{ compra.total }}</td>
             <td>{{ compra.nombre_usuario }}</td>
+            <td>
+              @if (compra.anulada) {
+                <span class="badge inactive">Anulada</span>
+              }
+            </td>
+            <td class="acciones">
+              @if (!compra.anulada) {
+                <button class="icon-btn" type="button" title="Anular compra" (click)="cancelarCompra(compra)">
+                  <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                </button>
+              }
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" class="muted">No hay compras registradas en el rango seleccionado.</td>
+            <td colspan="9" class="muted">No hay compras registradas en el rango seleccionado.</td>
           </tr>
         }
       </tbody>
@@ -89,6 +103,7 @@
           <th>Monto apertura (Bs)</th>
           <th>Monto cierre (Bs)</th>
           <th>Abierto por</th>
+          <th style="text-align:right">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -99,13 +114,88 @@
             <td>{{ turno.monto_apertura }}</td>
             <td>{{ turno.monto_cierre ?? '—' }}</td>
             <td>{{ turno.nombre_usuario }}</td>
+            <td class="acciones">
+              <button class="icon-btn" type="button" title="Ver detalle" (click)="verDetalle(turno)">
+                <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="5" class="muted">No hay turnos de caja registrados en el rango seleccionado.</td>
+            <td colspan="6" class="muted">No hay turnos de caja registrados en el rango seleccionado.</td>
           </tr>
         }
       </tbody>
     </table>
   </div>
+}
+
+@if (cargandoDetalle()) {
+  <sd-modal titulo="Detalle del turno" (cerrar)="cerrarDetalle()">
+    <p class="muted">Cargando…</p>
+  </sd-modal>
+}
+@if (turnoDetalle(); as d) {
+  <sd-modal titulo="Detalle del turno" (cerrar)="cerrarDetalle()">
+    <p class="muted">
+      {{ d.turno.apertura_fecha | date: 'dd/MM/yyyy HH:mm' }} →
+      {{ d.turno.cierre_fecha ? (d.turno.cierre_fecha | date: 'dd/MM/yyyy HH:mm') : 'turno todavía abierto' }}
+      · abrió {{ d.turno.nombre_usuario }}
+    </p>
+
+    <div class="tarjetas detalle-turno">
+      <div class="tarjeta">
+        <span class="etiqueta">Ingresos (ventas)</span>
+        <strong class="valor ok">Bs {{ d.total_ingresos }}</strong>
+      </div>
+      <div class="tarjeta">
+        <span class="etiqueta">Egresos (compras)</span>
+        <strong class="valor negativo">Bs {{ d.total_egresos }}</strong>
+      </div>
+      <div class="tarjeta destacada">
+        <span class="etiqueta">Ganancia neta</span>
+        <strong class="valor" [class.ok]="+d.ganancia_neta >= 0" [class.negativo]="+d.ganancia_neta < 0">
+          Bs {{ d.ganancia_neta }}
+        </strong>
+      </div>
+    </div>
+
+    <h3 class="subtitulo-detalle">Ventas ({{ d.ventas.length }})</h3>
+    @if (d.ventas.length === 0) {
+      <p class="muted">No hubo ventas en este turno.</p>
+    } @else {
+      <ul class="lista-detalle-turno">
+        @for (venta of d.ventas; track venta.id) {
+          <li>
+            <span>{{ venta.creado_en | date: 'HH:mm' }} · {{ venta.usuario_nombre }}</span>
+            <strong [class.tachado]="venta.anulada">Bs {{ venta.total }}</strong>
+            @if (venta.anulada) {
+              <span class="badge inactive">Anulada</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    <h3 class="subtitulo-detalle">Compras ({{ d.compras.length }})</h3>
+    @if (d.compras.length === 0) {
+      <p class="muted">No hubo compras a proveedores en este turno.</p>
+    } @else {
+      <ul class="lista-detalle-turno">
+        @for (compra of d.compras; track compra.id) {
+          <li>
+            <span>{{ compra.creado_en | date: 'HH:mm' }} · {{ compra.nombre_producto }} × {{ compra.cantidad }}</span>
+            <strong [class.tachado]="compra.anulada">Bs {{ compra.total }}</strong>
+            @if (compra.anulada) {
+              <span class="badge inactive">Anulada</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="modal-actions">
+      <button class="btn-outline" type="button" (click)="cerrarDetalle()">Cerrar</button>
+    </div>
+  </sd-modal>
 }

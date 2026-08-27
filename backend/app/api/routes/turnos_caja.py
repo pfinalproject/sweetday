@@ -6,11 +6,14 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_usuario_actual, requiere_rol
+from app.api.routes.ventas import _a_salida
 from app.db.session import get_db
+from app.models.compra import Compra
 from app.models.turno_caja import TurnoCaja
 from app.models.usuario import RolUsuario, Usuario
-from app.models.venta import Venta
-from app.schemas.caja import TurnoCajaAbrir, TurnoCajaCerrar, TurnoCajaHistorial, TurnoCajaSalida
+from app.models.venta import Venta, VentaDetalle
+from app.schemas.caja import TurnoCajaAbrir, TurnoCajaCerrar, TurnoCajaDetalle, TurnoCajaHistorial, TurnoCajaSalida
+from app.schemas.compra import CompraHistorial
 
 router = APIRouter(prefix="/api/turnos-caja", tags=["turnos-caja"])
 
@@ -63,6 +66,69 @@ def listar(desde: date | None = None, hasta: date | None = None, db: Session = D
         )
         for t in turnos
     ]
+
+
+@router.get(
+    "/{turno_id}/detalle",
+    response_model=TurnoCajaDetalle,
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
+)
+def detalle(turno_id: str, db: Session = Depends(get_db)):
+    """Ingresos (ventas) y egresos (compras) del turno, desde que se abrió hasta que se
+    cerró (o hasta ahora, si sigue abierto)."""
+    turno = db.get(TurnoCaja, turno_id)
+    if turno is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Turno no encontrado")
+
+    hasta = turno.cierre_fecha or datetime.now(timezone.utc)
+
+    ventas = (
+        db.query(Venta)
+        .options(joinedload(Venta.usuario), joinedload(Venta.detalles).joinedload(VentaDetalle.producto))
+        .filter(Venta.creado_en >= turno.apertura_fecha, Venta.creado_en <= hasta)
+        .order_by(Venta.creado_en)
+        .all()
+    )
+    compras = (
+        db.query(Compra)
+        .options(joinedload(Compra.producto), joinedload(Compra.proveedor), joinedload(Compra.usuario))
+        .filter(Compra.creado_en >= turno.apertura_fecha, Compra.creado_en <= hasta)
+        .order_by(Compra.creado_en)
+        .all()
+    )
+
+    total_ingresos = sum((v.total for v in ventas if not v.anulada), Decimal("0"))
+    total_egresos = sum((c.total for c in compras if not c.anulada), Decimal("0"))
+
+    return TurnoCajaDetalle(
+        turno=TurnoCajaHistorial(
+            id=turno.id,
+            nombre_usuario=turno.usuario.nombre,
+            apertura_fecha=turno.apertura_fecha,
+            monto_apertura=turno.monto_apertura,
+            cierre_fecha=turno.cierre_fecha,
+            monto_cierre=turno.monto_cierre,
+        ),
+        ventas=[_a_salida(v) for v in ventas],
+        compras=[
+            CompraHistorial(
+                id=c.id,
+                nombre_producto=c.producto.nombre,
+                nombre_proveedor=c.proveedor.nombre,
+                nombre_usuario=c.usuario.nombre,
+                cantidad=c.cantidad,
+                costo_unitario=c.costo_unitario,
+                total=c.total,
+                creado_en=c.creado_en,
+                anulada=c.anulada,
+                anulada_en=c.anulada_en,
+            )
+            for c in compras
+        ],
+        total_ingresos=total_ingresos,
+        total_egresos=total_egresos,
+        ganancia_neta=total_ingresos - total_egresos,
+    )
 
 
 @router.post(

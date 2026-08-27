@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
+import { ModalComponent } from '../../shared/modal/modal.component';
 import { CompraHistorial, ComprasService } from '../productos/compras.service';
-import { CajaService, TurnoCajaHistorial } from '../ventas/caja.service';
+import { CajaService, TurnoCajaDetalle, TurnoCajaHistorial } from '../ventas/caja.service';
 import { ResumenFinanciero, ReportesService } from './reportes.service';
 
 type Rango = 'hoy' | 'mes' | 'todo';
@@ -10,7 +12,7 @@ type Vista = 'resumen' | 'compras' | 'turnos';
 @Component({
   selector: 'sd-reportes',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ModalComponent],
   templateUrl: './reportes.component.html',
   styleUrl: './reportes.component.scss',
 })
@@ -23,10 +25,14 @@ export class ReportesComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly rango = signal<Rango>('mes');
 
+  readonly turnoDetalle = signal<TurnoCajaDetalle | null>(null);
+  readonly cargandoDetalle = signal(false);
+
   constructor(
     private readonly reportesService: ReportesService,
     private readonly comprasService: ComprasService,
     private readonly cajaService: CajaService,
+    private readonly confirmService: ConfirmService,
   ) {}
 
   ngOnInit(): void {
@@ -100,6 +106,42 @@ export class ReportesComponent implements OnInit {
     }
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     return { desde: fmt(inicioMes), hasta: fmt(hoy) };
+  }
+
+  async cancelarCompra(compra: CompraHistorial): Promise<void> {
+    const confirmado = await this.confirmService.pedir(
+      `¿Anular esta compra de ${compra.cantidad} unidad(es) de "${compra.nombre_producto}"? Se le va a restar ese stock al producto.`,
+      'Anular compra',
+      'Anular',
+    );
+    if (!confirmado) {
+      return;
+    }
+    this.comprasService.anular(compra.id).subscribe({
+      next: () => this.cargar(),
+      error: (err) => {
+        this.error.set(err.error?.detail ?? 'No se pudo anular la compra.');
+      },
+    });
+  }
+
+  verDetalle(turno: TurnoCajaHistorial): void {
+    this.cargandoDetalle.set(true);
+    this.turnoDetalle.set(null);
+    this.cajaService.detalle(turno.id).subscribe({
+      next: (detalle) => {
+        this.turnoDetalle.set(detalle);
+        this.cargandoDetalle.set(false);
+      },
+      error: () => {
+        this.cargandoDetalle.set(false);
+        this.error.set('No se pudo cargar el detalle del turno.');
+      },
+    });
+  }
+
+  cerrarDetalle(): void {
+    this.turnoDetalle.set(null);
   }
 
   get margen(): number | null {
