@@ -5,7 +5,7 @@ from app.api.deps import requiere_rol
 from app.core.security import hash_password
 from app.db.session import get_db
 from app.models.usuario import RolUsuario, Usuario
-from app.schemas.usuario import UsuarioCrear, UsuarioSalida
+from app.schemas.usuario import UsuarioActualizar, UsuarioCrear, UsuarioSalida
 
 router = APIRouter(
     prefix="/api/usuarios",
@@ -31,6 +31,31 @@ def crear(datos: UsuarioCrear, db: Session = Depends(get_db)):
         rol=datos.rol,
     )
     db.add(usuario)
+    db.commit()
+    db.refresh(usuario)
+    return usuario
+
+
+@router.put("/{usuario_id}", response_model=UsuarioSalida)
+def actualizar(usuario_id: str, datos: UsuarioActualizar, db: Session = Depends(get_db)):
+    usuario = db.get(Usuario, usuario_id)
+    if usuario is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    cambios = datos.model_dump(exclude_unset=True, exclude_none=True)
+    nuevo_email = cambios.pop("email", None)
+    if nuevo_email is not None and nuevo_email != usuario.email:
+        if db.query(Usuario).filter(Usuario.email == nuevo_email, Usuario.id != usuario.id).first() is not None:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ya existe un usuario con ese email")
+        usuario.email = nuevo_email
+
+    password = cambios.pop("password", None)
+    if password is not None:
+        usuario.hash_password = hash_password(password)
+
+    for campo, valor in cambios.items():
+        setattr(usuario, campo, valor)
+
     db.commit()
     db.refresh(usuario)
     return usuario

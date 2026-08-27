@@ -21,6 +21,7 @@ export class UsuariosComponent implements OnInit {
   readonly modalAbierto = signal(false);
   readonly guardando = signal(false);
   readonly errorForm = signal<string | null>(null);
+  readonly editando = signal<Usuario | null>(null);
 
   form: UsuarioForm = { ...FORM_VACIO };
 
@@ -45,23 +46,40 @@ export class UsuariosComponent implements OnInit {
   }
 
   abrirModal(): void {
+    this.editando.set(null);
     this.form = { ...FORM_VACIO };
     this.errorForm.set(null);
     this.modalAbierto.set(true);
   }
 
+  abrirEditar(usuario: Usuario): void {
+    this.editando.set(usuario);
+    this.form = { nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol };
+    this.errorForm.set(null);
+    this.modalAbierto.set(true);
+  }
+
   guardar(): void {
+    const editando = this.editando();
     if (!nombreValido(this.form.nombre)) {
       this.errorForm.set('Ingresa un nombre válido (sin símbolos raros, máximo 120 caracteres).');
       return;
     }
-    if (!this.form.email.trim() || this.form.password.length < 6) {
+    if (!this.form.email.trim() || (!editando && this.form.password.length < 6)) {
       this.errorForm.set('Completa un email y una contraseña de al menos 6 caracteres.');
+      return;
+    }
+    if (editando && this.form.password && this.form.password.length < 6) {
+      this.errorForm.set('La contraseña nueva debe tener al menos 6 caracteres.');
       return;
     }
 
     this.guardando.set(true);
-    this.usuariosService.crear(this.form).subscribe({
+    const peticion = editando
+      ? this.usuariosService.actualizar(editando.id, this.form)
+      : this.usuariosService.crear(this.form);
+
+    peticion.subscribe({
       next: () => {
         this.guardando.set(false);
         this.modalAbierto.set(false);
@@ -69,7 +87,9 @@ export class UsuariosComponent implements OnInit {
       },
       error: (err) => {
         this.guardando.set(false);
-        this.errorForm.set(err.status === 409 ? 'Ya existe un usuario con ese email.' : 'No se pudo crear el usuario.');
+        this.errorForm.set(
+          err.status === 409 ? 'Ya existe un usuario con ese email.' : 'No se pudo guardar el usuario.',
+        );
       },
     });
   }

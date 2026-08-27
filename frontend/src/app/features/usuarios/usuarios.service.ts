@@ -19,6 +19,13 @@ export interface UsuarioForm {
   rol: RolUsuario;
 }
 
+export interface UsuarioActualizarForm {
+  nombre: string;
+  email: string;
+  password?: string;
+  rol: RolUsuario;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {
   private readonly base = `${environment.apiUrl}/usuarios`;
@@ -31,6 +38,14 @@ export class UsuariosService {
 
   crear(datos: UsuarioForm): Observable<Usuario> {
     return this.http.post<Usuario>(this.base, datos);
+  }
+
+  actualizar(id: string, datos: UsuarioActualizarForm): Observable<Usuario> {
+    const payload: Partial<UsuarioActualizarForm> = { ...datos };
+    if (!payload.password) {
+      delete payload.password;
+    }
+    return this.http.put<Usuario>(`${this.base}/${id}`, payload);
   }
 
   cambiarEstado(id: string, activo: boolean): Observable<Usuario> {

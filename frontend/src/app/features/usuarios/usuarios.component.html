@@ -40,6 +40,9 @@
               </span>
             </td>
             <td class="acciones">
+              <button class="icon-btn" type="button" title="Editar" (click)="abrirEditar(usuario)">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
               <button class="btn-outline" type="button" (click)="toggleEstado(usuario)">
                 {{ usuario.activo ? 'Desactivar' : 'Activar' }}
               </button>
@@ -56,7 +59,7 @@
 }
 
 @if (modalAbierto()) {
-  <sd-modal titulo="Nuevo usuario" (cerrar)="modalAbierto.set(false)">
+  <sd-modal [titulo]="editando() ? 'Editar usuario' : 'Nuevo usuario'" (cerrar)="modalAbierto.set(false)">
     <label class="field">
       <span>Nombre</span>
       <input type="text" [(ngModel)]="form.nombre" name="nombre" />
@@ -67,7 +70,12 @@
     </label>
     <label class="field">
       <span>Contraseña</span>
-      <input type="password" [(ngModel)]="form.password" name="password" />
+      <input
+        type="password"
+        [(ngModel)]="form.password"
+        name="password"
+        [placeholder]="editando() ? 'Dejar en blanco para no cambiarla' : ''"
+      />
     </label>
     <label class="field">
       <span>Rol</span>
