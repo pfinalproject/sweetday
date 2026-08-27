@@ -3,6 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
+import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { TicketComponent } from '../../shared/ticket/ticket.component';
 import { Producto, ProductoReconocido } from '../../shared/models/producto.model';
@@ -27,6 +28,7 @@ export class VentasComponent implements OnInit {
   private readonly cajaService = inject(CajaService);
   private readonly productosService = inject(ProductosService);
   private readonly ventasService = inject(VentasService);
+  private readonly confirmService = inject(ConfirmService);
 
   readonly esAdmin = this.auth.esAdmin;
 
@@ -54,7 +56,7 @@ export class VentasComponent implements OnInit {
   readonly toast = signal<string | null>(null);
   private toastTimeoutId?: ReturnType<typeof setTimeout>;
 
-  readonly porPagina = 20;
+  readonly porPagina = 9;
   readonly paginaActual = signal(1);
 
   readonly productosFiltrados = computed(() => {
@@ -265,8 +267,16 @@ export class VentasComponent implements OnInit {
     this.agregarAlCarrito(producto);
   }
 
-  cobrar(): void {
+  async cobrar(): Promise<void> {
     if (this.carrito().length === 0) {
+      return;
+    }
+    const ok = await this.confirmService.pedir(
+      `¿Confirmar el cobro de Bs ${this.total().toFixed(2)}?`,
+      'Confirmar venta',
+      'Cobrar',
+    );
+    if (!ok) {
       return;
     }
     this.procesandoCobro.set(true);

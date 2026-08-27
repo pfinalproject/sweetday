@@ -32,6 +32,7 @@
           <th>Cajera</th>
           <th>Artículos</th>
           <th>Total (Bs)</th>
+          <th>Estado</th>
           <th style="text-align:right">Acciones</th>
         </tr>
       </thead>
@@ -42,15 +43,25 @@
             <td>{{ venta.usuario_nombre }}</td>
             <td>{{ numArticulos(venta) }}</td>
             <td>Bs {{ venta.total }}</td>
+            <td>
+              @if (venta.anulada) {
+                <span class="badge inactive">Anulada</span>
+              }
+            </td>
             <td class="acciones">
               <button class="icon-btn" type="button" title="Ver ticket" (click)="ticket.set(venta)">
                 <svg viewBox="0 0 24 24"><path d="M4 3h16v18l-3-2-3 2-3-2-3 2-3-2-1 1Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
               </button>
+              @if (esAdmin() && !venta.anulada) {
+                <button class="icon-btn" type="button" title="Anular venta" (click)="cancelar(venta)">
+                  <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                </button>
+              }
             </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="5" class="muted">No hay ventas registradas en este rango.</td>
+            <td colspan="6" class="muted">No hay ventas registradas en este rango.</td>
           </tr>
         }
       </tbody>

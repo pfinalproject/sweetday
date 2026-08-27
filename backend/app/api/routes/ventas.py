@@ -21,6 +21,8 @@ def _a_salida(venta: Venta) -> VentaSalida:
         usuario_nombre=venta.usuario.nombre,
         total=venta.total,
         creado_en=venta.creado_en,
+        anulada=venta.anulada,
+        anulada_en=venta.anulada_en,
         detalles=[
             VentaDetalleSalida(
                 producto_id=d.producto_id,
@@ -34,7 +36,11 @@ def _a_salida(venta: Venta) -> VentaSalida:
     )
 
 
-@router.get("", response_model=list[VentaSalida], dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))])
+@router.get(
+    "",
+    response_model=list[VentaSalida],
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN, RolUsuario.EMPLEADA))],
+)
 def listar(desde: date | None = None, hasta: date | None = None, db: Session = Depends(get_db)):
     query = db.query(Venta).options(
         joinedload(Venta.usuario),
@@ -63,6 +69,11 @@ def crear(datos: VentaCrear, db: Session = Depends(get_db), usuario: Usuario = D
         producto = db.get(Producto, item.producto_id)
         if producto is None or not producto.activo:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Producto {item.producto_id} no encontrado")
+        if not producto.categoria.activo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"'{producto.nombre}' pertenece a una categoría inactiva y no se puede vender",
+            )
         if producto.stock < item.cantidad:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -87,6 +98,33 @@ def crear(datos: VentaCrear, db: Session = Depends(get_db), usuario: Usuario = D
         )
         db.add(detalle)
 
+    db.commit()
+    db.refresh(venta)
+    return _a_salida(venta)
+
+
+@router.patch(
+    "/{venta_id}/anular",
+    response_model=VentaSalida,
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
+)
+def anular(venta_id: str, db: Session = Depends(get_db)):
+    venta = (
+        db.query(Venta)
+        .options(joinedload(Venta.usuario), joinedload(Venta.detalles).joinedload(VentaDetalle.producto))
+        .filter(Venta.id == venta_id)
+        .first()
+    )
+    if venta is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Venta no encontrada")
+    if venta.anulada:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta venta ya está anulada")
+
+    for detalle in venta.detalles:
+        detalle.producto.stock += detalle.cantidad
+
+    venta.anulada = True
+    venta.anulada_en = datetime.now(timezone.utc)
     db.commit()
     db.refresh(venta)
     return _a_salida(venta)

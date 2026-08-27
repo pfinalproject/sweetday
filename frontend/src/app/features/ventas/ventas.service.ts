@@ -22,6 +22,8 @@ export interface Venta {
   usuario_nombre: string;
   total: string;
   creado_en: string;
+  anulada: boolean;
+  anulada_en: string | null;
   detalles: VentaDetalle[];
 }
 
@@ -40,5 +42,9 @@ export class VentasService {
     if (desde) params['desde'] = desde;
     if (hasta) params['hasta'] = hasta;
     return this.http.get<Venta[]>(this.base, { params });
+  }
+
+  anular(id: string): Observable<Venta> {
+    return this.http.patch<Venta>(`${this.base}/${id}/anular`, null);
   }
 }

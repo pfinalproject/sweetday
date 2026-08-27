@@ -10,6 +10,16 @@ export interface TurnoCaja {
   monto_apertura: string;
   cierre_fecha: string | null;
   monto_cierre: string | null;
+  total_vendido: string | null;
+}
+
+export interface TurnoCajaHistorial {
+  id: string;
+  nombre_usuario: string;
+  apertura_fecha: string;
+  monto_apertura: string;
+  cierre_fecha: string | null;
+  monto_cierre: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -28,5 +38,12 @@ export class CajaService {
 
   cerrar(turnoId: string, montoCierre: number): Observable<TurnoCaja> {
     return this.http.post<TurnoCaja>(`${this.base}/${turnoId}/cerrar`, { monto_cierre: montoCierre });
+  }
+
+  listar(desde?: string, hasta?: string): Observable<TurnoCajaHistorial[]> {
+    const params: Record<string, string> = {};
+    if (desde) params['desde'] = desde;
+    if (hasta) params['hasta'] = hasta;
+    return this.http.get<TurnoCajaHistorial[]>(this.base, { params });
   }
 }

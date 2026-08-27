@@ -111,40 +111,19 @@
 
     &.foto-vacia {
       border: 1px dashed var(--border);
-    }
-  }
-}
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-.paginador {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 4px;
-
-  button {
-    min-width: 30px;
-    height: 30px;
-    padding: 0 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 13px;
-
-    &:hover:not(:disabled) {
-      border-color: var(--pink);
-    }
-
-    &:disabled {
-      opacity: 0.4;
-    }
-
-    &.activo {
-      background: var(--pink);
-      border-color: var(--pink);
-      color: #fff;
+      svg {
+        width: 40%;
+        height: 40%;
+        fill: none;
+        stroke: var(--text-faint);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
     }
   }
 }
@@ -196,6 +175,19 @@
 
     &.miniatura-vacia {
       border: 1px dashed var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        width: 55%;
+        height: 55%;
+        fill: none;
+        stroke: var(--text-faint);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
     }
   }
 }
@@ -283,6 +275,24 @@
 
   .pos-productos {
     padding-bottom: 90px;
+  }
+
+  .grid-productos {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+
+  .tarjeta-producto {
+    padding: 6px;
+    font-size: 12.5px;
+
+    span {
+      font-size: 11px;
+    }
+
+    .foto {
+      aspect-ratio: 4 / 3;
+    }
   }
 
   .pos-carrito {

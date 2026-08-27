@@ -32,4 +32,6 @@ class VentaSalida(BaseModel):
     usuario_nombre: str
     total: Decimal
     creado_en: datetime
+    anulada: bool
+    anulada_en: datetime | None
     detalles: list[VentaDetalleSalida]
