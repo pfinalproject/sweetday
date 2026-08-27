@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   --bg: #150f1a;
   --bg-elevated: #1c1522;
   --surface: #201826;
@@ -19,6 +20,24 @@
   --radius: 12px;
   --font-display: 'Poppins', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
+
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-base: 13.5px;
+  --fs-md: 14px;
+  --fs-lg: 17px;
+  --fs-xl: 22px;
 }
 
 * {
@@ -59,16 +78,16 @@ a {
 /* ---- Patrones compartidos por las paginas de listado (Productos, Categorias, Usuarios) ---- */
 
 .page-head {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 
   h2 {
-    font-size: 22px;
+    font-size: var(--fs-xl);
   }
 
   p {
     margin: 2px 0 0;
     color: var(--text-faint);
-    font-size: 13px;
+    font-size: var(--fs-base);
   }
 }
 
@@ -123,6 +142,20 @@ a {
   }
 }
 
+.select-inline {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 14px;
+  color: var(--text);
+  font-size: var(--fs-base);
+
+  &:focus {
+    outline: none;
+    border-color: var(--pink);
+  }
+}
+
 @media (max-width: 640px) {
   .toolbar {
     .search {
@@ -140,19 +173,32 @@ a {
 .btn-danger-outline {
   border-radius: 8px;
   padding: 9px 16px;
-  font-size: 13.5px;
+  font-size: var(--fs-base);
   font-weight: 600;
   border: 1px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 }
 
 .btn-primary {
   background: var(--gradient);
   color: #fff;
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--shadow-md);
+  }
 }
 
 .btn-outline {
@@ -172,13 +218,14 @@ a {
   border-radius: var(--radius);
   overflow-x: auto;
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 table {
   width: 100%;
   min-width: 560px;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: var(--fs-base);
 }
 
 th {
@@ -186,7 +233,7 @@ th {
   padding: 12px 18px;
   background: var(--surface-2);
   color: var(--text-faint);
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid var(--border);
@@ -244,6 +291,40 @@ tr:last-child td {
   justify-content: flex-end;
 }
 
+.paginador {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+
+  button {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+
+    &:hover:not(:disabled) {
+      border-color: var(--pink);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+    }
+
+    &.activo {
+      background: var(--pink);
+      border-color: var(--pink);
+      color: #fff;
+    }
+  }
+}
+
 .icon-btn {
   border: 1px solid var(--border);
   background: var(--surface-2);
@@ -254,10 +335,12 @@ tr:last-child td {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 
   &:hover {
     color: var(--text);
     border-color: var(--border-strong, var(--border));
+    transform: translateY(-1px);
   }
 
   svg {
@@ -299,7 +382,7 @@ tr:last-child td {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-head {
@@ -308,7 +391,7 @@ tr:last-child td {
   justify-content: space-between;
 
   h3 {
-    font-size: 17px;
+    font-size: var(--fs-lg);
   }
 
   button {

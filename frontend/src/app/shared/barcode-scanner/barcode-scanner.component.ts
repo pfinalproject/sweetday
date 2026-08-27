@@ -2,6 +2,25 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserMultiFormatReader } from '@zxing/browser';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
+
+/** Solo los formatos de código de barras que realmente usan los productos de la tienda
+ * (EAN/UPC/Code128/Code39) — evita que el lector intente decodificar QR/PDF417/Aztec/
+ * DataMatrix/MaxiCode en cada frame, que no son formatos relevantes para retail y son
+ * la fuente principal del spam de "NotFoundException" en consola durante el escaneo. */
+const HINTS = new Map([
+  [
+    DecodeHintType.POSSIBLE_FORMATS,
+    [
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+    ],
+  ],
+]);
 
 @Component({
   selector: 'sd-barcode-scanner',
@@ -36,7 +55,7 @@ export class BarcodeScannerComponent implements AfterViewInit, OnDestroy {
 
   private async iniciar(): Promise<void> {
     try {
-      this.lector = new BrowserMultiFormatReader();
+      this.lector = new BrowserMultiFormatReader(HINTS);
       const dispositivos = await BrowserMultiFormatReader.listVideoInputDevices();
       if (dispositivos.length === 0) {
         this.error.set('No se encontró ninguna cámara en este dispositivo.');
