@@ -62,6 +62,7 @@ export class ProductosComponent implements OnInit {
   readonly errorFoto = signal<string | null>(null);
 
   readonly busqueda = signal('');
+  readonly categoriaFiltro = signal<string>('todas');
   form: ProductoForm = { ...FORM_VACIO };
 
   readonly porPagina = 9;
@@ -69,10 +70,10 @@ export class ProductosComponent implements OnInit {
 
   readonly productosFiltrados = computed(() => {
     const termino = this.busqueda().trim().toLowerCase();
-    if (!termino) {
-      return this.productos();
-    }
-    return this.productos().filter((producto) => producto.nombre.toLowerCase().includes(termino));
+    const categoria = this.categoriaFiltro();
+    return this.productos()
+      .filter((producto) => categoria === 'todas' || producto.categoria.id === categoria)
+      .filter((producto) => !termino || producto.nombre.toLowerCase().includes(termino));
   });
 
   readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.productosFiltrados().length / this.porPagina)));
@@ -119,6 +120,11 @@ export class ProductosComponent implements OnInit {
     this.orden.set(orden);
     this.paginaActual.set(1);
     this.cargar();
+  }
+
+  cambiarCategoriaFiltro(categoriaId: string): void {
+    this.categoriaFiltro.set(categoriaId);
+    this.paginaActual.set(1);
   }
 
   onBusquedaChange(valor: string): void {

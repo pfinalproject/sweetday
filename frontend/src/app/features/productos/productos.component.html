@@ -17,6 +17,12 @@
     [ngModel]="busqueda()"
     (ngModelChange)="onBusquedaChange($event)"
   />
+  <select class="select-inline" [ngModel]="categoriaFiltro()" (ngModelChange)="cambiarCategoriaFiltro($event)">
+    <option value="todas">Todas las categorías</option>
+    @for (categoria of categorias(); track categoria.id) {
+      <option [value]="categoria.id">{{ categoria.nombre }}</option>
+    }
+  </select>
   <select class="select-inline" [ngModel]="orden()" (ngModelChange)="cambiarOrden($event)">
     <option value="nombre">Nombre (A-Z)</option>
     <option value="recientes">Más nuevo primero</option>
