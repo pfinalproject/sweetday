@@ -25,7 +25,7 @@ def _turno_abierto(db: Session) -> TurnoCaja | None:
 def _total_vendido(db: Session, turno: TurnoCaja) -> Decimal:
     total = (
         db.query(func.coalesce(func.sum(Venta.total), 0))
-        .filter(Venta.creado_en >= turno.apertura_fecha, Venta.anulada.is_(False))
+        .filter(Venta.creado_en >= turno.apertura_fecha, Venta.anulada.is_(False), Venta.devuelta.is_(False))
         .scalar()
     )
     return Decimal(total)
@@ -97,7 +97,7 @@ def detalle(turno_id: str, db: Session = Depends(get_db)):
         .all()
     )
 
-    total_ingresos = sum((v.total for v in ventas if not v.anulada), Decimal("0"))
+    total_ingresos = sum((v.total for v in ventas if not v.anulada and not v.devuelta), Decimal("0"))
     total_egresos = sum((c.total for c in compras if not c.anulada), Decimal("0"))
 
     return TurnoCajaDetalle(

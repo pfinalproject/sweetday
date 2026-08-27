@@ -168,9 +168,12 @@
         @for (venta of d.ventas; track venta.id) {
           <li>
             <span>{{ venta.creado_en | date: 'HH:mm' }} · {{ venta.usuario_nombre }}</span>
-            <strong [class.tachado]="venta.anulada">Bs {{ venta.total }}</strong>
+            <strong [class.tachado]="venta.anulada || venta.devuelta">Bs {{ venta.total }}</strong>
             @if (venta.anulada) {
               <span class="badge inactive">Anulada</span>
+            }
+            @if (venta.devuelta) {
+              <span class="badge warning">Devolución</span>
             }
           </li>
         }

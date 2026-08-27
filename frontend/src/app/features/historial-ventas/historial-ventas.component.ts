@@ -68,4 +68,16 @@ export class HistorialVentasComponent implements OnInit {
     }
     this.ventasService.anular(venta.id).subscribe(() => this.cargar());
   }
+
+  async devolver(venta: Venta): Promise<void> {
+    const confirmado = await this.confirmService.pedir(
+      `¿Registrar esta venta de Bs ${venta.total} como devolución? El stock de los productos NO se repondrá (se asume que son productos defectuosos o vencidos).`,
+      'Devolución de venta',
+      'Confirmar devolución',
+    );
+    if (!confirmado) {
+      return;
+    }
+    this.ventasService.devolver(venta.id).subscribe(() => this.cargar());
+  }
 }

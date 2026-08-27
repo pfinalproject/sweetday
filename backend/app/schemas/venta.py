@@ -34,4 +34,6 @@ class VentaSalida(BaseModel):
     creado_en: datetime
     anulada: bool
     anulada_en: datetime | None
+    devuelta: bool
+    devuelta_en: datetime | None
     detalles: list[VentaDetalleSalida]

@@ -23,6 +23,8 @@ def _a_salida(venta: Venta) -> VentaSalida:
         creado_en=venta.creado_en,
         anulada=venta.anulada,
         anulada_en=venta.anulada_en,
+        devuelta=venta.devuelta,
+        devuelta_en=venta.devuelta_en,
         detalles=[
             VentaDetalleSalida(
                 producto_id=d.producto_id,
@@ -123,11 +125,43 @@ def anular(venta_id: str, db: Session = Depends(get_db)):
     if venta.anulada:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta venta ya está anulada")
 
+    if venta.devuelta:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta venta ya está marcada como devolución")
+
     for detalle in venta.detalles:
         detalle.producto.stock += detalle.cantidad
 
     venta.anulada = True
     venta.anulada_en = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(venta)
+    return _a_salida(venta)
+
+
+@router.patch(
+    "/{venta_id}/devolver",
+    response_model=VentaSalida,
+    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN))],
+)
+def devolver(venta_id: str, db: Session = Depends(get_db)):
+    """Marca la venta como devolución. A diferencia de anular, el stock de los productos
+    NO se repone: se asume que son productos defectuosos o vencidos que ya no se pueden
+    volver a vender."""
+    venta = (
+        db.query(Venta)
+        .options(joinedload(Venta.usuario), joinedload(Venta.detalles).joinedload(VentaDetalle.producto))
+        .filter(Venta.id == venta_id)
+        .first()
+    )
+    if venta is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Venta no encontrada")
+    if venta.anulada:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta venta ya está anulada")
+    if venta.devuelta:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta venta ya está marcada como devolución")
+
+    venta.devuelta = True
+    venta.devuelta_en = datetime.now(timezone.utc)
     db.commit()
     db.refresh(venta)
     return _a_salida(venta)

@@ -47,14 +47,20 @@
               @if (venta.anulada) {
                 <span class="badge inactive">Anulada</span>
               }
+              @if (venta.devuelta) {
+                <span class="badge warning">Devolución</span>
+              }
             </td>
             <td class="acciones">
               <button class="icon-btn" type="button" title="Ver ticket" (click)="ticket.set(venta)">
                 <svg viewBox="0 0 24 24"><path d="M4 3h16v18l-3-2-3 2-3-2-3 2-3-2-1 1Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
               </button>
-              @if (esAdmin() && !venta.anulada) {
+              @if (esAdmin() && !venta.anulada && !venta.devuelta) {
                 <button class="icon-btn" type="button" title="Anular venta" (click)="cancelar(venta)">
                   <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                </button>
+                <button class="icon-btn" type="button" title="Registrar devolución" (click)="devolver(venta)">
+                  <svg viewBox="0 0 24 24"><path d="M3 10h11a5 5 0 0 1 0 10h-2"/><path d="M7 6 3 10l4 4"/></svg>
                 </button>
               }
             </td>

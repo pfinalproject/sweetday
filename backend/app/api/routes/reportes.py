@@ -25,8 +25,12 @@ def resumen(desde: date | None = None, hasta: date | None = None, db: Session = 
     desde_dt = datetime.combine(desde, time.min, tzinfo=timezone.utc) if desde else None
     hasta_dt = datetime.combine(hasta, time.max, tzinfo=timezone.utc) if hasta else None
 
-    ventas_q = db.query(func.coalesce(func.sum(Venta.total), 0), func.count(Venta.id))
-    compras_q = db.query(func.coalesce(func.sum(Compra.total), 0), func.count(Compra.id))
+    ventas_q = db.query(func.coalesce(func.sum(Venta.total), 0), func.count(Venta.id)).filter(
+        Venta.anulada.is_(False), Venta.devuelta.is_(False)
+    )
+    compras_q = db.query(func.coalesce(func.sum(Compra.total), 0), func.count(Compra.id)).filter(
+        Compra.anulada.is_(False)
+    )
 
     if desde_dt is not None:
         ventas_q = ventas_q.filter(Venta.creado_en >= desde_dt)

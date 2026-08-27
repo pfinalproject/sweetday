@@ -24,6 +24,8 @@ export interface Venta {
   creado_en: string;
   anulada: boolean;
   anulada_en: string | null;
+  devuelta: boolean;
+  devuelta_en: string | null;
   detalles: VentaDetalle[];
 }
 
@@ -46,5 +48,9 @@ export class VentasService {
 
   anular(id: string): Observable<Venta> {
     return this.http.patch<Venta>(`${this.base}/${id}/anular`, null);
+  }
+
+  devolver(id: string): Observable<Venta> {
+    return this.http.patch<Venta>(`${this.base}/${id}/devolver`, null);
   }
 }

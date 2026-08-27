@@ -18,6 +18,8 @@ class Venta(Base):
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     anulada: Mapped[bool] = mapped_column(Boolean, default=False)
     anulada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    devuelta: Mapped[bool] = mapped_column(Boolean, default=False)
+    devuelta_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     usuario = relationship("Usuario")
     detalles = relationship("VentaDetalle", back_populates="venta", cascade="all, delete-orphan")
