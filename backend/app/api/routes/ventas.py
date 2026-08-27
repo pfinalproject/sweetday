@@ -36,16 +36,19 @@ def _a_salida(venta: Venta) -> VentaSalida:
     )
 
 
-@router.get(
-    "",
-    response_model=list[VentaSalida],
-    dependencies=[Depends(requiere_rol(RolUsuario.ADMIN, RolUsuario.EMPLEADA))],
-)
-def listar(desde: date | None = None, hasta: date | None = None, db: Session = Depends(get_db)):
+@router.get("", response_model=list[VentaSalida])
+def listar(
+    desde: date | None = None,
+    hasta: date | None = None,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(requiere_rol(RolUsuario.ADMIN, RolUsuario.EMPLEADA)),
+):
     query = db.query(Venta).options(
         joinedload(Venta.usuario),
         joinedload(Venta.detalles).joinedload(VentaDetalle.producto),
     )
+    if usuario.rol == RolUsuario.EMPLEADA:
+        query = query.filter(Venta.usuario_id == usuario.id)
     if desde is not None:
         query = query.filter(Venta.creado_en >= datetime.combine(desde, time.min, tzinfo=timezone.utc))
     if hasta is not None:
