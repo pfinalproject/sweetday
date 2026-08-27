@@ -63,6 +63,7 @@ export class VentasComponent implements OnInit {
     const termino = this.busqueda().trim().toLowerCase();
     return this.productos()
       .filter((p) => p.stock > 0)
+      .filter((p) => p.categoria.activo)
       .filter((p) => !termino || p.nombre.toLowerCase().includes(termino));
   });
 
@@ -156,6 +157,10 @@ export class VentasComponent implements OnInit {
   }
 
   agregarAlCarrito(producto: Producto): void {
+    if (!producto.categoria.activo) {
+      this.error.set(`"${producto.nombre}" pertenece a una categoría inactiva y no se puede vender.`);
+      return;
+    }
     const carrito = this.carrito();
     const existente = carrito.find((l) => l.producto.id === producto.id);
     if (existente) {
