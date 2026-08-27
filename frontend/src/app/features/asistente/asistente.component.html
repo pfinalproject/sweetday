@@ -9,12 +9,7 @@
   <div class="chat-mensajes">
     @if (mensajes().length === 0) {
       <div class="bienvenida">
-        <p class="muted">Preguntame lo que quieras sobre tu inventario o tus ventas. Por ejemplo:</p>
-        <div class="sugerencias">
-          @for (sugerencia of sugerencias; track sugerencia) {
-            <button class="sugerencia" type="button" (click)="preguntar(sugerencia)">{{ sugerencia }}</button>
-          }
-        </div>
+        <p class="muted">Preguntame lo que quieras sobre tu inventario o tus ventas. Por ejemplo, alguna de estas:</p>
       </div>
     }
 
@@ -31,6 +26,12 @@
     }
 
     <div #scrollAnchor></div>
+  </div>
+
+  <div class="sugerencias">
+    @for (sugerencia of sugerencias; track sugerencia) {
+      <button class="sugerencia" type="button" [disabled]="enviando()" (click)="preguntar(sugerencia)">{{ sugerencia }}</button>
+    }
   </div>
 
   <form class="chat-input" (ngSubmit)="preguntar()">

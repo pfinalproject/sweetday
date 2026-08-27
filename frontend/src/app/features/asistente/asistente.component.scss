@@ -29,6 +29,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
 }
 
 .sugerencia {
@@ -40,8 +42,13 @@
   font-size: 12.5px;
   text-align: left;
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: var(--pink);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
