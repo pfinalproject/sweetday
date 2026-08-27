@@ -40,6 +40,8 @@ def listar(desde: date | None = None, hasta: date | None = None, db: Session = D
             costo_unitario=c.costo_unitario,
             total=c.total,
             creado_en=c.creado_en,
+            anulada=c.anulada,
+            anulada_en=c.anulada_en,
         )
         for c in compras
     ]
@@ -72,3 +74,45 @@ def crear(
     db.commit()
     db.refresh(compra)
     return compra
+
+
+@router.patch("/{compra_id}/anular", response_model=CompraHistorial)
+def anular(compra_id: str, db: Session = Depends(get_db)):
+    """Revierte el stock que sumó esta compra. No revierte el costo del producto
+    (no se guarda el costo anterior), solo el stock."""
+    compra = (
+        db.query(Compra)
+        .options(joinedload(Compra.producto), joinedload(Compra.proveedor), joinedload(Compra.usuario))
+        .filter(Compra.id == compra_id)
+        .first()
+    )
+    if compra is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Compra no encontrada")
+    if compra.anulada:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Esta compra ya está anulada")
+    if compra.producto.stock < compra.cantidad:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"No se puede anular: quedan {compra.producto.stock} unidades de "
+                f"'{compra.producto.nombre}', menos de las {compra.cantidad} que repuso esta compra"
+            ),
+        )
+
+    compra.producto.stock -= compra.cantidad
+    compra.anulada = True
+    compra.anulada_en = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(compra)
+    return CompraHistorial(
+        id=compra.id,
+        nombre_producto=compra.producto.nombre,
+        nombre_proveedor=compra.proveedor.nombre,
+        nombre_usuario=compra.usuario.nombre,
+        cantidad=compra.cantidad,
+        costo_unitario=compra.costo_unitario,
+        total=compra.total,
+        creado_en=compra.creado_en,
+        anulada=compra.anulada,
+        anulada_en=compra.anulada_en,
+    )

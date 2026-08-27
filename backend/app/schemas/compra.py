@@ -33,3 +33,5 @@ class CompraHistorial(BaseModel):
     costo_unitario: Decimal
     total: Decimal
     creado_en: datetime
+    anulada: bool
+    anulada_en: datetime | None

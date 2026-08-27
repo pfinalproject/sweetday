@@ -23,6 +23,8 @@ export interface CompraHistorial {
   costo_unitario: string;
   total: string;
   creado_en: string;
+  anulada: boolean;
+  anulada_en: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -44,5 +46,9 @@ export class ComprasService {
     if (desde) params['desde'] = desde;
     if (hasta) params['hasta'] = hasta;
     return this.http.get<CompraHistorial[]>(this.base, { params });
+  }
+
+  anular(id: string): Observable<CompraHistorial> {
+    return this.http.patch<CompraHistorial>(`${this.base}/${id}/anular`, null);
   }
 }
