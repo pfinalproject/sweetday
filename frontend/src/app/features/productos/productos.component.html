@@ -10,11 +10,22 @@
     <button class="tab" [class.active]="vista() === 'activos'" type="button" (click)="cambiarVista('activos')">Activos</button>
     <button class="tab" [class.active]="vista() === 'inactivos'" type="button" (click)="cambiarVista('inactivos')">Inactivos</button>
   </div>
-  <input class="search" type="search" placeholder="Buscar producto..." [(ngModel)]="busqueda" />
+  <input
+    class="search"
+    type="search"
+    placeholder="Buscar producto..."
+    [ngModel]="busqueda()"
+    (ngModelChange)="onBusquedaChange($event)"
+  />
+  <select class="select-inline" [ngModel]="orden()" (ngModelChange)="cambiarOrden($event)">
+    <option value="nombre">Nombre (A-Z)</option>
+    <option value="recientes">Más nuevo primero</option>
+  </select>
   <div class="spacer"></div>
-  <button class="btn-outline" type="button" (click)="abrirScanner()">Escanear</button>
-  <button class="btn-outline" type="button" (click)="abrirReconocer()">Reconocer por foto</button>
-  <button class="btn-primary" type="button" (click)="abrirCrear()">+ Nuevo Producto</button>
+  @if (esAdmin()) {
+    <button class="btn-outline" type="button" (click)="abrirScanner()">Escanear</button>
+    <button class="btn-primary" type="button" (click)="abrirCrear()">+ Nuevo Producto</button>
+  }
 </div>
 
 @if (cargando()) {
@@ -37,7 +48,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (producto of productosFiltrados(); track producto.id) {
+        @for (producto of productosPagina(); track producto.id) {
           <tr>
             <td>
               <div class="celda-producto">
@@ -58,16 +69,18 @@
               </span>
             </td>
             <td class="acciones">
-              <button class="icon-btn" type="button" title="Editar" (click)="abrirEditar(producto)">
-                <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-              </button>
-              @if (vista() === 'activos') {
-                <button class="icon-btn" type="button" title="Reabastecer" (click)="abrirReabastecer(producto)">
-                  <svg viewBox="0 0 24 24"><rect x="1" y="7" width="14" height="10" rx="1.5"/><path d="M15 10h4l4 4v3h-8Z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
+              @if (esAdmin()) {
+                <button class="icon-btn" type="button" title="Editar" (click)="abrirEditar(producto)">
+                  <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </button>
-                <button class="icon-btn" type="button" title="Desactivar" (click)="desactivar(producto)">
-                  <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-                </button>
+                @if (vista() === 'activos') {
+                  <button class="icon-btn" type="button" title="Reabastecer" (click)="abrirReabastecer(producto)">
+                    <svg viewBox="0 0 24 24"><rect x="1" y="7" width="14" height="10" rx="1.5"/><path d="M15 10h4l4 4v3h-8Z"/><circle cx="6" cy="19" r="1.8"/><circle cx="17.5" cy="19" r="1.8"/></svg>
+                  </button>
+                  <button class="icon-btn" type="button" title="Desactivar" (click)="desactivar(producto)">
+                    <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                  </button>
+                }
               }
             </td>
           </tr>
@@ -79,6 +92,37 @@
       </tbody>
     </table>
   </div>
+
+  @if (totalPaginas() > 1) {
+    <div class="paginador">
+      <button class="icon-btn" type="button" [disabled]="paginaSegura() === 1" (click)="paginaAnterior()">
+        ‹
+      </button>
+      @if (numerosPagina()[0] > 1) {
+        <button type="button" (click)="irAPagina(1)">1</button>
+        @if (numerosPagina()[0] > 2) {
+          <span class="muted">…</span>
+        }
+      }
+      @for (n of numerosPagina(); track n) {
+        <button type="button" [class.activo]="n === paginaSegura()" (click)="irAPagina(n)">{{ n }}</button>
+      }
+      @if (numerosPagina()[numerosPagina().length - 1] < totalPaginas()) {
+        @if (numerosPagina()[numerosPagina().length - 1] < totalPaginas() - 1) {
+          <span class="muted">…</span>
+        }
+        <button type="button" (click)="irAPagina(totalPaginas())">{{ totalPaginas() }}</button>
+      }
+      <button
+        class="icon-btn"
+        type="button"
+        [disabled]="paginaSegura() === totalPaginas()"
+        (click)="paginaSiguiente()"
+      >
+        ›
+      </button>
+    </div>
+  }
 }
 
 @if (modalAbierto()) {
@@ -163,52 +207,6 @@
 
 @if (mostrarScanner()) {
   <sd-barcode-scanner (codigoDetectado)="onCodigoDetectado($event)" (cerrar)="mostrarScanner.set(false)"></sd-barcode-scanner>
-}
-
-@if (mostrarReconocer()) {
-  <sd-modal titulo="Reconocer producto por foto" (cerrar)="mostrarReconocer.set(false)">
-    <p class="muted">
-      Toma o sube una foto del producto (sin código de barras) y busco los productos más parecidos
-      entre las fotos ya cargadas en el catálogo.
-    </p>
-
-    <label class="btn-primary foto-boton">
-      {{ reconociendo() ? 'Analizando…' : 'Tomar o elegir foto' }}
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        capture="environment"
-        (change)="onArchivoReconocer($event)"
-        [disabled]="reconociendo()"
-        hidden
-      />
-    </label>
-
-    @if (errorReconocer()) {
-      <p class="error">{{ errorReconocer() }}</p>
-    }
-
-    @if (resultadosReconocer(); as resultados) {
-      @if (resultados.length === 0) {
-        <p class="muted">No hay ninguna foto cargada en el catálogo todavía para comparar.</p>
-      } @else {
-        <ul class="lista-reconocidos">
-          @for (resultado of resultados; track resultado.producto.id) {
-            <li>
-              <button type="button" (click)="elegirReconocido(resultado.producto)">
-                <img [src]="fotoUrl(resultado.producto)" alt="" />
-                <div>
-                  <strong>{{ resultado.producto.nombre }}</strong>
-                  <span class="muted">Bs {{ resultado.producto.precio }} · stock {{ resultado.producto.stock }}</span>
-                </div>
-                <span class="badge" [class.warning]="resultado.similitud_pct < 60">{{ resultado.similitud_pct }}%</span>
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    }
-  </sd-modal>
 }
 
 @if (reabasteciendo()) {

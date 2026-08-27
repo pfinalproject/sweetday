@@ -21,8 +21,10 @@ export class ProductosService {
 
   constructor(private readonly http: HttpClient) {}
 
-  listar(activo: boolean): Observable<Producto[]> {
-    return this.http.get<Producto[]>(this.base, { params: { activo } });
+  listar(activo: boolean, orden?: 'nombre' | 'recientes'): Observable<Producto[]> {
+    const params: Record<string, string> = { activo: String(activo) };
+    if (orden) params['orden'] = orden;
+    return this.http.get<Producto[]>(this.base, { params });
   }
 
   buscarPorCodigo(codigoBarras: string): Observable<Producto | null> {

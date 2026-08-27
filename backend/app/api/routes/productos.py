@@ -22,14 +22,15 @@ def _validar_imagen(archivo: UploadFile) -> None:
 
 
 @router.get("", response_model=list[ProductoSalida], dependencies=[Depends(get_usuario_actual)])
-def listar(activo: bool = True, db: Session = Depends(get_db)):
-    return (
-        db.query(Producto)
-        .options(joinedload(Producto.categoria), joinedload(Producto.proveedor))
-        .filter(Producto.activo.is_(activo))
-        .order_by(Producto.nombre)
-        .all()
+def listar(activo: bool = True, orden: str = "nombre", db: Session = Depends(get_db)):
+    query = db.query(Producto).options(joinedload(Producto.categoria), joinedload(Producto.proveedor)).filter(
+        Producto.activo.is_(activo)
     )
+    if orden == "recientes":
+        query = query.order_by(Producto.creado_en.desc())
+    else:
+        query = query.order_by(Producto.nombre)
+    return query.all()
 
 
 @router.get(

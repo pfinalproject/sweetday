@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/auth/auth.service';
 import { CategoriasService } from '../categorias/categorias.service';
 import { ProveedoresService } from '../proveedores/proveedores.service';
 import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
 import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
-import { Categoria, Producto, ProductoReconocido, Proveedor } from '../../shared/models/producto.model';
+import { Categoria, Producto, Proveedor } from '../../shared/models/producto.model';
 import { nombreValido } from '../../shared/validacion';
 import { ComprasService } from './compras.service';
 import { OpenFoodFactsService } from './open-food-facts.service';
@@ -31,12 +32,16 @@ const FORM_VACIO: ProductoForm = {
   styleUrl: './productos.component.scss',
 })
 export class ProductosComponent implements OnInit {
+  private readonly auth = inject(AuthService);
+  readonly esAdmin = this.auth.esAdmin;
+
   readonly productos = signal<Producto[]>([]);
   readonly categorias = signal<Categoria[]>([]);
   readonly proveedores = signal<Proveedor[]>([]);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
   readonly vista = signal<'activos' | 'inactivos'>('activos');
+  readonly orden = signal<'nombre' | 'recientes'>('nombre');
   readonly modalAbierto = signal(false);
   readonly guardando = signal(false);
   readonly errorForm = signal<string | null>(null);
@@ -56,20 +61,37 @@ export class ProductosComponent implements OnInit {
   readonly subiendoFoto = signal(false);
   readonly errorFoto = signal<string | null>(null);
 
-  readonly mostrarReconocer = signal(false);
-  readonly reconociendo = signal(false);
-  readonly errorReconocer = signal<string | null>(null);
-  readonly resultadosReconocer = signal<ProductoReconocido[] | null>(null);
-
-  busqueda = '';
+  readonly busqueda = signal('');
   form: ProductoForm = { ...FORM_VACIO };
 
+  readonly porPagina = 9;
+  readonly paginaActual = signal(1);
+
   readonly productosFiltrados = computed(() => {
-    const termino = this.busqueda.trim().toLowerCase();
+    const termino = this.busqueda().trim().toLowerCase();
     if (!termino) {
       return this.productos();
     }
     return this.productos().filter((producto) => producto.nombre.toLowerCase().includes(termino));
+  });
+
+  readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.productosFiltrados().length / this.porPagina)));
+
+  readonly paginaSegura = computed(() => Math.min(this.paginaActual(), this.totalPaginas()));
+
+  readonly productosPagina = computed(() => {
+    const inicio = (this.paginaSegura() - 1) * this.porPagina;
+    return this.productosFiltrados().slice(inicio, inicio + this.porPagina);
+  });
+
+  readonly numerosPagina = computed(() => {
+    const total = this.totalPaginas();
+    const actual = this.paginaSegura();
+    const ventana = 5;
+    let inicio = Math.max(1, actual - Math.floor(ventana / 2));
+    const fin = Math.min(total, inicio + ventana - 1);
+    inicio = Math.max(1, fin - ventana + 1);
+    return Array.from({ length: fin - inicio + 1 }, (_, i) => inicio + i);
   });
 
   constructor(
@@ -89,12 +111,36 @@ export class ProductosComponent implements OnInit {
 
   cambiarVista(vista: 'activos' | 'inactivos'): void {
     this.vista.set(vista);
+    this.paginaActual.set(1);
     this.cargar();
+  }
+
+  cambiarOrden(orden: 'nombre' | 'recientes'): void {
+    this.orden.set(orden);
+    this.paginaActual.set(1);
+    this.cargar();
+  }
+
+  onBusquedaChange(valor: string): void {
+    this.busqueda.set(valor);
+    this.paginaActual.set(1);
+  }
+
+  irAPagina(pagina: number): void {
+    this.paginaActual.set(Math.min(Math.max(1, pagina), this.totalPaginas()));
+  }
+
+  paginaAnterior(): void {
+    this.irAPagina(this.paginaSegura() - 1);
+  }
+
+  paginaSiguiente(): void {
+    this.irAPagina(this.paginaSegura() + 1);
   }
 
   private cargar(): void {
     this.cargando.set(true);
-    this.productosService.listar(this.vista() === 'activos').subscribe({
+    this.productosService.listar(this.vista() === 'activos', this.orden()).subscribe({
       next: (productos) => {
         this.productos.set(productos);
         this.cargando.set(false);
@@ -211,42 +257,6 @@ export class ProductosComponent implements OnInit {
         this.errorFoto.set('No se pudo subir la foto. Intenta con otra imagen (JPEG, PNG o WEBP, hasta 8MB).');
       },
     });
-  }
-
-  // ---- Reconocer producto por foto ----
-
-  abrirReconocer(): void {
-    this.resultadosReconocer.set(null);
-    this.errorReconocer.set(null);
-    this.mostrarReconocer.set(true);
-  }
-
-  onArchivoReconocer(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const archivo = input.files?.[0];
-    input.value = '';
-    if (!archivo) {
-      return;
-    }
-
-    this.reconociendo.set(true);
-    this.errorReconocer.set(null);
-    this.resultadosReconocer.set(null);
-    this.productosService.reconocer(archivo).subscribe({
-      next: (resultados) => {
-        this.reconociendo.set(false);
-        this.resultadosReconocer.set(resultados);
-      },
-      error: () => {
-        this.reconociendo.set(false);
-        this.errorReconocer.set('No se pudo procesar la imagen. Intenta de nuevo.');
-      },
-    });
-  }
-
-  elegirReconocido(producto: Producto): void {
-    this.mostrarReconocer.set(false);
-    this.abrirEditar(producto);
   }
 
   // ---- Escaneo de codigo de barras ----

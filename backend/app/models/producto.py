@@ -1,8 +1,9 @@
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Boolean, ForeignKey, LargeBinary, Numeric, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, LargeBinary, Numeric, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +23,7 @@ class Producto(Base):
     stock: Mapped[int] = mapped_column(default=0)
     imagen_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
+    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Foto real subida por el Admin (para reconocimiento visual) y su embedding CLIP/ResNet.
     imagen_datos: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)

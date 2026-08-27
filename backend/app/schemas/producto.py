@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -36,6 +37,7 @@ class ProductoSalida(BaseModel):
     activo: bool
     imagen_url: str | None
     tiene_foto: bool
+    creado_en: datetime
     categoria: CategoriaSalida
     proveedor: ProveedorSalida
 

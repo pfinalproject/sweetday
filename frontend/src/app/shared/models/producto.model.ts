@@ -22,6 +22,7 @@ export interface Producto {
   activo: boolean;
   imagen_url: string | null;
   tiene_foto: boolean;
+  creado_en: string;
   categoria: Categoria;
   proveedor: Proveedor;
 }
