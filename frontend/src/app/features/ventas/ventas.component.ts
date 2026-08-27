@@ -6,7 +6,8 @@ import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-sc
 import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { TicketComponent } from '../../shared/ticket/ticket.component';
-import { Producto, ProductoReconocido } from '../../shared/models/producto.model';
+import { Categoria, Producto, ProductoReconocido } from '../../shared/models/producto.model';
+import { CategoriasService } from '../categorias/categorias.service';
 import { ProductosService } from '../productos/productos.service';
 import { CajaService, TurnoCaja } from './caja.service';
 import { Venta, VentasService } from './ventas.service';
@@ -27,6 +28,7 @@ export class VentasComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly cajaService = inject(CajaService);
   private readonly productosService = inject(ProductosService);
+  private readonly categoriasService = inject(CategoriasService);
   private readonly ventasService = inject(VentasService);
   private readonly confirmService = inject(ConfirmService);
 
@@ -35,6 +37,8 @@ export class VentasComponent implements OnInit {
   readonly cargandoCaja = signal(true);
   readonly caja = signal<TurnoCaja | null>(null);
   readonly productos = signal<Producto[]>([]);
+  readonly categorias = signal<Categoria[]>([]);
+  readonly categoriaSeleccionada = signal<string>('todas');
   readonly carrito = signal<LineaCarrito[]>([]);
 
   readonly mostrarAbrirCaja = signal(false);
@@ -61,9 +65,11 @@ export class VentasComponent implements OnInit {
 
   readonly productosFiltrados = computed(() => {
     const termino = this.busqueda().trim().toLowerCase();
+    const categoria = this.categoriaSeleccionada();
     return this.productos()
       .filter((p) => p.stock > 0)
       .filter((p) => p.categoria.activo)
+      .filter((p) => categoria === 'todas' || p.categoria.id === categoria)
       .filter((p) => !termino || p.nombre.toLowerCase().includes(termino));
   });
 
@@ -99,6 +105,19 @@ export class VentasComponent implements OnInit {
   ngOnInit(): void {
     this.cargarCaja();
     this.productosService.listar(true).subscribe((productos) => this.productos.set(productos));
+    this.categoriasService.listar().subscribe((categorias) => this.categorias.set(categorias));
+  }
+
+  cambiarCategoria(categoriaId: string): void {
+    this.categoriaSeleccionada.set(categoriaId);
+    this.paginaActual.set(1);
+  }
+
+  /** Cuánto queda visualmente disponible de un producto restando lo que ya está en el
+   * carrito (sin tocar el stock real — recién se descuenta de verdad al cobrar). */
+  stockVisible(producto: Producto): number {
+    const enCarrito = this.carrito().find((l) => l.producto.id === producto.id)?.cantidad ?? 0;
+    return producto.stock - enCarrito;
   }
 
   private cargarCaja(): void {

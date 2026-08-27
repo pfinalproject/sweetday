@@ -59,7 +59,7 @@
     <p class="error">{{ error() }}</p>
   }
 
-  <div class="pos">
+  <div class="pos" [class.sin-carrito]="carrito().length === 0">
     <div class="pos-productos">
       <div class="pos-buscador">
         <input
@@ -69,6 +69,12 @@
           [ngModel]="busqueda()"
           (ngModelChange)="onBusquedaChange($event)"
         />
+        <select class="select-inline" [ngModel]="categoriaSeleccionada()" (ngModelChange)="cambiarCategoria($event)">
+          <option value="todas">Todas las categorías</option>
+          @for (categoria of categorias(); track categoria.id) {
+            <option [value]="categoria.id">{{ categoria.nombre }}</option>
+          }
+        </select>
         <button class="btn-outline" type="button" (click)="mostrarScanner.set(true)">Escanear</button>
         <button class="btn-outline" type="button" (click)="abrirReconocer()">Sin código</button>
       </div>
@@ -89,7 +95,7 @@
             }
             <strong>{{ producto.nombre }}</strong>
             <span>Bs {{ producto.precio }}</span>
-            <span class="muted">Stock: {{ producto.stock }}</span>
+            <span class="muted">Stock: {{ stockVisible(producto) }}</span>
           </button>
         } @empty {
           <p class="muted">No hay productos disponibles para vender.</p>
@@ -128,27 +134,23 @@
       }
     </div>
 
-    <div class="pos-carrito" [class.abierto]="carritoAbierto()">
-      <button
-        type="button"
-        class="carrito-resumen"
-        [attr.aria-expanded]="carritoAbierto()"
-        (click)="carritoAbierto.set(!carritoAbierto())"
-      >
-        <span class="carrito-resumen-info">
-          <strong>Bs {{ total().toFixed(2) }}</strong>
-          <span class="muted">
-            {{ carrito().length === 0 ? 'Carrito vacío' : cantidadItems() + ' producto(s)' }}
+    @if (carrito().length > 0) {
+      <div class="pos-carrito" [class.abierto]="carritoAbierto()">
+        <button
+          type="button"
+          class="carrito-resumen"
+          [attr.aria-expanded]="carritoAbierto()"
+          (click)="carritoAbierto.set(!carritoAbierto())"
+        >
+          <span class="carrito-resumen-info">
+            <strong>Bs {{ total().toFixed(2) }}</strong>
+            <span class="muted">{{ cantidadItems() }} producto(s)</span>
           </span>
-        </span>
-        <span class="chevron" aria-hidden="true">{{ carritoAbierto() ? '⌄' : '⌃' }}</span>
-      </button>
+          <span class="chevron" aria-hidden="true">{{ carritoAbierto() ? '⌄' : '⌃' }}</span>
+        </button>
 
-      <div class="carrito-detalle">
-        <h3>Carrito</h3>
-        @if (carrito().length === 0) {
-          <p class="muted">Toca un producto para agregarlo.</p>
-        } @else {
+        <div class="carrito-detalle">
+          <h3>Carrito</h3>
           <div class="lineas">
             @for (linea of carrito(); track linea.producto.id) {
               <div class="linea">
@@ -183,18 +185,18 @@
             <span>Total</span>
             <strong>Bs {{ total().toFixed(2) }}</strong>
           </div>
-        }
-      </div>
+        </div>
 
-      <button
-        class="btn-primary cobrar"
-        type="button"
-        [disabled]="procesandoCobro() || carrito().length === 0"
-        (click)="cobrar()"
-      >
-        {{ procesandoCobro() ? 'Procesando...' : 'Cobrar' }}
-      </button>
-    </div>
+        <button
+          class="btn-primary cobrar"
+          type="button"
+          [disabled]="procesandoCobro()"
+          (click)="cobrar()"
+        >
+          {{ procesandoCobro() ? 'Procesando...' : 'Cobrar' }}
+        </button>
+      </div>
+    }
   </div>
 }
 
