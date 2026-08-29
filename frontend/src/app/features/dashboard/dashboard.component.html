@@ -87,26 +87,21 @@
 
     <section class="panel">
       <div class="panel-head">
-        <h3>En tendencia esta semana</h3>
+        <h3>Productos más vendidos</h3>
         <a routerLink="/asistente" class="ver-todo">Preguntar al asistente →</a>
       </div>
       @if (cargandoTendencias()) {
-        <p class="muted">Calculando tendencias…</p>
+        <p class="muted">Calculando productos más vendidos…</p>
       } @else if (tendencias().length === 0) {
-        <p class="muted">Todavía no hay suficientes ventas esta semana para ver tendencias.</p>
+        <p class="muted">Todavía no hay suficientes ventas esta semana para mostrar el top.</p>
       } @else {
         <ul class="lista-tendencias">
           @for (producto of tendencias(); track producto.producto_id) {
             <li>
               <div>
                 <strong>{{ producto.nombre }}</strong>
-                <span class="muted">{{ producto.unidades_semana_actual }} und. esta semana (antes: {{ producto.unidades_semana_anterior }})</span>
               </div>
-              @if (producto.variacion_pct === null) {
-                <span class="badge warning">nuevo</span>
-              } @else {
-                <span class="badge">+{{ producto.variacion_pct }}%</span>
-              }
+              <span class="badge">{{ producto.unidades_semana_actual }} und.</span>
             </li>
           }
         </ul>
