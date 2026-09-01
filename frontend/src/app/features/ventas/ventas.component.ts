@@ -276,7 +276,7 @@ export class VentasComponent implements OnInit {
   }
 
   elegirReconocido(producto: Producto): void {
-    this.mostrarReconocer.set(false);
+    this.resultadosReconocer.set(null);
     if (producto.stock <= 0) {
       this.error.set(`"${producto.nombre}" está sin stock.`);
       return;

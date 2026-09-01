@@ -10,7 +10,9 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
           <h3>{{ titulo }}</h3>
           <button type="button" (click)="cerrar.emit()" aria-label="Cerrar">×</button>
         </div>
-        <ng-content></ng-content>
+        <div class="modal-body">
+          <ng-content></ng-content>
+        </div>
       </div>
     </div>
   `,
