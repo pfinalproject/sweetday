@@ -4,13 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { CategoriasService } from '../categorias/categorias.service';
 import { ProveedoresService } from '../proveedores/proveedores.service';
-import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
 import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { Categoria, Producto, Proveedor } from '../../shared/models/producto.model';
 import { nombreValido } from '../../shared/validacion';
 import { ComprasService } from './compras.service';
-import { OpenFoodFactsService } from './open-food-facts.service';
 import { ProductoForm, ProductosService } from './productos.service';
 
 const FORM_VACIO: ProductoForm = {
@@ -27,7 +25,7 @@ const FORM_VACIO: ProductoForm = {
 @Component({
   selector: 'sd-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent, BarcodeScannerComponent],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss',
 })
@@ -46,11 +44,6 @@ export class ProductosComponent implements OnInit {
   readonly guardando = signal(false);
   readonly errorForm = signal<string | null>(null);
   readonly editando = signal<Producto | null>(null);
-
-  readonly mostrarScanner = signal(false);
-  readonly buscandoInfoExterna = signal(false);
-  readonly avisoEscaneo = signal<string | null>(null);
-  readonly sinResultadoExterno = signal(false);
 
   readonly reabasteciendo = signal<Producto | null>(null);
   readonly guardandoCompra = signal(false);
@@ -100,7 +93,6 @@ export class ProductosComponent implements OnInit {
     private readonly categoriasService: CategoriasService,
     private readonly proveedoresService: ProveedoresService,
     private readonly comprasService: ComprasService,
-    private readonly openFoodFacts: OpenFoodFactsService,
     private readonly confirmService: ConfirmService,
   ) {}
 
@@ -171,7 +163,6 @@ export class ProductosComponent implements OnInit {
       proveedor_id: this.proveedores()[0]?.id ?? '',
     };
     this.errorForm.set(null);
-    this.sinResultadoExterno.set(false);
     this.modalAbierto.set(true);
   }
 
@@ -188,7 +179,6 @@ export class ProductosComponent implements OnInit {
       imagen_url: producto.imagen_url,
     };
     this.errorForm.set(null);
-    this.sinResultadoExterno.set(false);
     this.modalAbierto.set(true);
   }
 
@@ -265,50 +255,6 @@ export class ProductosComponent implements OnInit {
         this.subiendoFoto.set(false);
         this.errorFoto.set('No se pudo subir la foto. Intenta con otra imagen (JPEG, PNG o WEBP, hasta 8MB).');
       },
-    });
-  }
-
-  // ---- Escaneo de codigo de barras ----
-
-  abrirScanner(): void {
-    if (this.proveedores().length === 0) {
-      this.error.set('Registra al menos un proveedor antes de crear productos.');
-      return;
-    }
-    this.avisoEscaneo.set(null);
-    this.mostrarScanner.set(true);
-  }
-
-  onCodigoDetectado(codigo: string): void {
-    this.mostrarScanner.set(false);
-
-    this.productosService.buscarPorCodigo(codigo).subscribe((existente) => {
-      if (existente) {
-        this.avisoEscaneo.set(`"${existente.nombre}" ya está registrado con ese código — abriendo para editar.`);
-        this.abrirEditar(existente);
-        return;
-      }
-
-      this.editando.set(null);
-      this.form = {
-        ...FORM_VACIO,
-        codigo_barras: codigo,
-        categoria_id: this.categorias()[0]?.id ?? '',
-        proveedor_id: this.proveedores()[0]?.id ?? '',
-      };
-      this.errorForm.set(null);
-      this.modalAbierto.set(true);
-      this.buscandoInfoExterna.set(true);
-      this.sinResultadoExterno.set(false);
-
-      this.openFoodFacts.buscarPorCodigo(codigo).subscribe((info) => {
-        this.buscandoInfoExterna.set(false);
-        if (!info) {
-          this.sinResultadoExterno.set(true);
-          return;
-        }
-        this.form = { ...this.form, nombre: info.nombre, imagen_url: info.imagenUrl };
-      });
     });
   }
 

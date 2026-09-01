@@ -29,7 +29,6 @@
   </select>
   <div class="spacer"></div>
   @if (esAdmin()) {
-    <button class="btn-outline" type="button" (click)="abrirScanner()">Escanear</button>
     <button class="btn-primary" type="button" (click)="abrirCrear()">+ Nuevo Producto</button>
   }
 </div>
@@ -151,14 +150,6 @@
 
 @if (modalAbierto()) {
   <sd-modal [titulo]="editando() ? 'Editar producto' : 'Nuevo producto'" (cerrar)="modalAbierto.set(false)">
-    @if (avisoEscaneo()) {
-      <p class="ok">{{ avisoEscaneo() }}</p>
-    }
-    @if (buscandoInfoExterna()) {
-      <p class="muted">Buscando el producto en Open Food Facts…</p>
-    } @else if (sinResultadoExterno()) {
-      <p class="muted">No se encontró en Open Food Facts — completa los datos a mano.</p>
-    }
     <label class="field">
       <span>Nombre</span>
       <input type="text" [(ngModel)]="form.nombre" name="nombre" />
@@ -227,10 +218,6 @@
       </button>
     </div>
   </sd-modal>
-}
-
-@if (mostrarScanner()) {
-  <sd-barcode-scanner (codigoDetectado)="onCodigoDetectado($event)" (cerrar)="mostrarScanner.set(false)"></sd-barcode-scanner>
 }
 
 @if (reabasteciendo()) {
