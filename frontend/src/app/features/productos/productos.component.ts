@@ -169,6 +169,7 @@ export class ProductosComponent implements OnInit {
       proveedor_id: this.proveedores()[0]?.id ?? '',
     };
     this.errorForm.set(null);
+    this.errorFoto.set(null);
     this.avisoEscaneo.set(null);
     this.limpiarFotoPendiente();
     this.modalAbierto.set(true);
@@ -187,6 +188,7 @@ export class ProductosComponent implements OnInit {
       imagen_url: producto.imagen_url,
     };
     this.errorForm.set(null);
+    this.errorFoto.set(null);
     this.avisoEscaneo.set(null);
     this.limpiarFotoPendiente();
     this.modalAbierto.set(true);
@@ -226,6 +228,7 @@ export class ProductosComponent implements OnInit {
         proveedor_id: this.proveedores()[0]?.id ?? '',
       };
       this.errorForm.set(null);
+      this.errorFoto.set(null);
       this.avisoEscaneo.set(null);
       this.limpiarFotoPendiente();
       this.modalAbierto.set(true);
@@ -301,7 +304,7 @@ export class ProductosComponent implements OnInit {
 
   // ---- Foto del producto (para reconocimiento visual) ----
 
-  onArchivoFoto(event: Event): void {
+  async onArchivoFoto(event: Event): Promise<void> {
     const editando = this.editando();
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0];
@@ -310,8 +313,13 @@ export class ProductosComponent implements OnInit {
       return;
     }
 
-    this.subiendoFoto.set(true);
     this.errorFoto.set(null);
+    if (!(await this.esImagenValida(archivo))) {
+      this.errorFoto.set('Ese archivo no es una imagen válida. Usa JPEG, PNG o WEBP.');
+      return;
+    }
+
+    this.subiendoFoto.set(true);
     this.productosService.subirFoto(editando.id, archivo).subscribe({
       next: (actualizado) => {
         this.subiendoFoto.set(false);
@@ -325,16 +333,36 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  onArchivoFotoNueva(event: Event): void {
+  async onArchivoFotoNueva(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0];
     input.value = '';
     if (!archivo) {
       return;
     }
+
+    this.errorFoto.set(null);
+    if (!(await this.esImagenValida(archivo))) {
+      this.errorFoto.set('Ese archivo no es una imagen válida. Usa JPEG, PNG o WEBP.');
+      return;
+    }
+
     this.limpiarFotoPendiente();
     this.fotoPendiente = archivo;
     this.previewFotoPendiente.set(URL.createObjectURL(archivo));
+  }
+
+  /** Valida el contenido real del archivo intentando decodificarlo como imagen: la
+   * extensión o el Content-Type que reporta el navegador se pueden falsificar
+   * renombrando un PDF a .jpg, así que no alcanzan como control por sí solos. */
+  private async esImagenValida(archivo: File): Promise<boolean> {
+    try {
+      const bitmap = await createImageBitmap(archivo);
+      bitmap.close();
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private limpiarFotoPendiente(): void {

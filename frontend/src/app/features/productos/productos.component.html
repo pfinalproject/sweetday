@@ -220,6 +220,9 @@
             <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onArchivoFotoNueva($event)" hidden />
           </label>
         </div>
+        @if (errorFoto()) {
+          <p class="error">{{ errorFoto() }}</p>
+        }
       }
     </div>
 
