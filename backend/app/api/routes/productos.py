@@ -16,9 +16,23 @@ TIPOS_IMAGEN_PERMITIDOS = {"image/jpeg", "image/png", "image/webp"}
 LIMITE_TAMANO_BYTES = 8 * 1024 * 1024  # 8MB
 
 
-def _validar_imagen(archivo: UploadFile) -> None:
+def _validar_content_type(archivo: UploadFile) -> None:
+    """Rechazo rapido por el Content-Type declarado, antes de leer el archivo entero.
+
+    Es solo una optimizacion (evita procesar de una un PDF de 8MB, por ejemplo): no es
+    la validacion de seguridad real, porque el cliente puede mandar cualquier
+    Content-Type. Esa validacion de verdad ocurre en redimensionar_imagen(), que
+    decodifica el contenido con Pillow.
+    """
     if archivo.content_type not in TIPOS_IMAGEN_PERMITIDOS:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen debe ser JPEG, PNG o WEBP")
+
+
+def _optimizar_o_400(datos: bytes) -> bytes:
+    try:
+        return redimensionar_imagen(datos)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.get("", response_model=list[ProductoSalida], dependencies=[Depends(get_usuario_actual)])
@@ -56,12 +70,12 @@ async def reconocer(archivo: UploadFile = File(...), db: Session = Depends(get_d
     """Reconocimiento visual: recibe una foto tomada con la camara y devuelve los
     productos del catalogo mas parecidos, ordenados por similitud (sin codigo de barras).
     """
-    _validar_imagen(archivo)
+    _validar_content_type(archivo)
     datos = await archivo.read()
     if len(datos) > LIMITE_TAMANO_BYTES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen no puede pesar mas de 8MB")
 
-    datos_optimizados = redimensionar_imagen(datos)
+    datos_optimizados = _optimizar_o_400(datos)
     vector = calcular_embedding(datos_optimizados)
     distancia = Producto.embedding.cosine_distance(vector).label("distancia")
 
@@ -123,13 +137,13 @@ async def subir_foto(producto_id: str, archivo: UploadFile = File(...), db: Sess
     producto = db.get(Producto, producto_id)
     if producto is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
-    _validar_imagen(archivo)
+    _validar_content_type(archivo)
 
     datos = await archivo.read()
     if len(datos) > LIMITE_TAMANO_BYTES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen no puede pesar mas de 8MB")
 
-    datos_optimizados = redimensionar_imagen(datos)
+    datos_optimizados = _optimizar_o_400(datos)
     producto.imagen_datos = datos_optimizados
     producto.imagen_mime = "image/jpeg"
     producto.embedding = calcular_embedding(datos_optimizados)
