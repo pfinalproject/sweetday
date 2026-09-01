@@ -255,16 +255,6 @@ export class VentasComponent implements OnInit {
     this.mostrarReconocer.set(true);
   }
 
-  onArchivoReconocer(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const archivo = input.files?.[0];
-    input.value = '';
-    if (!archivo) {
-      return;
-    }
-    this.procesarArchivoReconocer(archivo);
-  }
-
   procesarArchivoReconocer(archivo: File): void {
     this.reconociendo.set(true);
     this.errorReconocer.set(null);

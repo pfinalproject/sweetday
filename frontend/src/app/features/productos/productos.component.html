@@ -29,6 +29,7 @@
   </select>
   <div class="spacer"></div>
   @if (esAdmin()) {
+    <button class="btn-outline" type="button" (click)="abrirScanner()">Escanear</button>
     <button class="btn-primary" type="button" (click)="abrirCrear()">+ Nuevo Producto</button>
   }
 </div>
@@ -149,7 +150,10 @@
 }
 
 @if (modalAbierto()) {
-  <sd-modal [titulo]="editando() ? 'Editar producto' : 'Nuevo producto'" (cerrar)="modalAbierto.set(false)">
+  <sd-modal [titulo]="editando() ? 'Editar producto' : 'Nuevo producto'" (cerrar)="cerrarModal()">
+    @if (avisoEscaneo()) {
+      <p class="ok">{{ avisoEscaneo() }}</p>
+    }
     <label class="field">
       <span>Nombre</span>
       <input type="text" [(ngModel)]="form.nombre" name="nombre" />
@@ -187,9 +191,9 @@
       <input type="number" min="0" [(ngModel)]="form.stock" name="stock" />
     </label>
 
-    @if (editando()) {
-      <div class="field">
-        <span>Foto del producto (para reconocimiento visual)</span>
+    <div class="field">
+      <span>Foto del producto (para reconocimiento visual)</span>
+      @if (editando()) {
         <div class="foto-producto">
           @if (editando()!.tiene_foto) {
             <img [src]="fotoUrl(editando()!)" alt="" />
@@ -204,20 +208,36 @@
         @if (errorFoto()) {
           <p class="error">{{ errorFoto() }}</p>
         }
-      </div>
-    }
+      } @else {
+        <div class="foto-producto">
+          @if (previewFotoPendiente(); as preview) {
+            <img [src]="preview" alt="" />
+          } @else {
+            <div class="foto-vacia">Sin foto</div>
+          }
+          <label class="btn-outline foto-boton">
+            {{ previewFotoPendiente() ? 'Cambiar foto' : 'Subir foto' }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onArchivoFotoNueva($event)" hidden />
+          </label>
+        </div>
+      }
+    </div>
 
     @if (errorForm()) {
       <p class="error">{{ errorForm() }}</p>
     }
 
     <div class="modal-actions">
-      <button class="btn-outline" type="button" (click)="modalAbierto.set(false)">Cancelar</button>
+      <button class="btn-outline" type="button" (click)="cerrarModal()">Cancelar</button>
       <button class="btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">
         {{ guardando() ? 'Guardando...' : 'Guardar' }}
       </button>
     </div>
   </sd-modal>
+}
+
+@if (mostrarScanner()) {
+  <sd-barcode-scanner (codigoDetectado)="onCodigoDetectado($event)" (cerrar)="mostrarScanner.set(false)"></sd-barcode-scanner>
 }
 
 @if (reabasteciendo()) {

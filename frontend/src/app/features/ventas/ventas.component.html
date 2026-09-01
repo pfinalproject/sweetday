@@ -208,12 +208,6 @@
     <p class="muted">Analizando…</p>
     }
 
-    <label class="btn-outline foto-boton">
-      O elegir un archivo
-      <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment"
-        (change)="onArchivoReconocer($event)" [disabled]="reconociendo()" hidden />
-    </label>
-
     @if (errorReconocer()) {
     <p class="error">{{ errorReconocer() }}</p>
     }

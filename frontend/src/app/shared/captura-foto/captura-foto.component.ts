@@ -32,7 +32,7 @@ export class CapturaFotoComponent implements AfterViewInit, OnDestroy {
       await this.videoRef.nativeElement.play();
       this.listo.set(true);
     } catch {
-      this.error.set('No se pudo acceder a la cámara. Puedes elegir una foto desde archivos abajo.');
+      this.error.set('No se pudo acceder a la cámara. Revisa los permisos del navegador e intenta de nuevo.');
     }
   }
 

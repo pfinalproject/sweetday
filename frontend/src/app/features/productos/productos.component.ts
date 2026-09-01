@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { CategoriasService } from '../categorias/categorias.service';
 import { ProveedoresService } from '../proveedores/proveedores.service';
+import { BarcodeScannerComponent } from '../../shared/barcode-scanner/barcode-scanner.component';
 import { ConfirmService } from '../../shared/confirm/confirm.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
 import { Categoria, Producto, Proveedor } from '../../shared/models/producto.model';
@@ -25,7 +26,7 @@ const FORM_VACIO: ProductoForm = {
 @Component({
   selector: 'sd-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, BarcodeScannerComponent],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss',
 })
@@ -45,6 +46,9 @@ export class ProductosComponent implements OnInit {
   readonly errorForm = signal<string | null>(null);
   readonly editando = signal<Producto | null>(null);
 
+  readonly mostrarScanner = signal(false);
+  readonly avisoEscaneo = signal<string | null>(null);
+
   readonly reabasteciendo = signal<Producto | null>(null);
   readonly guardandoCompra = signal(false);
   readonly errorCompra = signal<string | null>(null);
@@ -53,6 +57,8 @@ export class ProductosComponent implements OnInit {
 
   readonly subiendoFoto = signal(false);
   readonly errorFoto = signal<string | null>(null);
+  private fotoPendiente: File | null = null;
+  readonly previewFotoPendiente = signal<string | null>(null);
 
   readonly busqueda = signal('');
   readonly categoriaFiltro = signal<string>('todas');
@@ -163,6 +169,8 @@ export class ProductosComponent implements OnInit {
       proveedor_id: this.proveedores()[0]?.id ?? '',
     };
     this.errorForm.set(null);
+    this.avisoEscaneo.set(null);
+    this.limpiarFotoPendiente();
     this.modalAbierto.set(true);
   }
 
@@ -179,7 +187,49 @@ export class ProductosComponent implements OnInit {
       imagen_url: producto.imagen_url,
     };
     this.errorForm.set(null);
+    this.avisoEscaneo.set(null);
+    this.limpiarFotoPendiente();
     this.modalAbierto.set(true);
+  }
+
+  cerrarModal(): void {
+    this.limpiarFotoPendiente();
+    this.modalAbierto.set(false);
+  }
+
+  // ---- Escaneo de codigo de barras (solo completa el campo, sin buscar datos externos) ----
+
+  abrirScanner(): void {
+    if (this.proveedores().length === 0) {
+      this.error.set('Registra al menos un proveedor antes de crear productos.');
+      return;
+    }
+    this.avisoEscaneo.set(null);
+    this.mostrarScanner.set(true);
+  }
+
+  onCodigoDetectado(codigo: string): void {
+    this.mostrarScanner.set(false);
+
+    this.productosService.buscarPorCodigo(codigo).subscribe((existente) => {
+      if (existente) {
+        this.avisoEscaneo.set(`"${existente.nombre}" ya está registrado con ese código — abriendo para editar.`);
+        this.abrirEditar(existente);
+        return;
+      }
+
+      this.editando.set(null);
+      this.form = {
+        ...FORM_VACIO,
+        codigo_barras: codigo,
+        categoria_id: this.categorias()[0]?.id ?? '',
+        proveedor_id: this.proveedores()[0]?.id ?? '',
+      };
+      this.errorForm.set(null);
+      this.avisoEscaneo.set(null);
+      this.limpiarFotoPendiente();
+      this.modalAbierto.set(true);
+    });
   }
 
   guardar(): void {
@@ -205,9 +255,26 @@ export class ProductosComponent implements OnInit {
       : this.productosService.crear(this.form);
 
     peticion.subscribe({
-      next: () => {
+      next: (producto) => {
+        const foto = this.fotoPendiente;
+        if (!editando && foto) {
+          this.productosService.subirFoto(producto.id, foto).subscribe({
+            next: () => {
+              this.guardando.set(false);
+              this.cerrarModal();
+              this.cargar();
+            },
+            error: () => {
+              this.guardando.set(false);
+              this.cerrarModal();
+              this.cargar();
+              this.error.set('El producto se creó, pero no se pudo subir la foto. Edítalo para intentarlo de nuevo.');
+            },
+          });
+          return;
+        }
         this.guardando.set(false);
-        this.modalAbierto.set(false);
+        this.cerrarModal();
         this.cargar();
       },
       error: () => {
@@ -256,6 +323,27 @@ export class ProductosComponent implements OnInit {
         this.errorFoto.set('No se pudo subir la foto. Intenta con otra imagen (JPEG, PNG o WEBP, hasta 8MB).');
       },
     });
+  }
+
+  onArchivoFotoNueva(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    input.value = '';
+    if (!archivo) {
+      return;
+    }
+    this.limpiarFotoPendiente();
+    this.fotoPendiente = archivo;
+    this.previewFotoPendiente.set(URL.createObjectURL(archivo));
+  }
+
+  private limpiarFotoPendiente(): void {
+    const url = this.previewFotoPendiente();
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
+    this.fotoPendiente = null;
+    this.previewFotoPendiente.set(null);
   }
 
   // ---- Reabastecer (compra a proveedor) ----
