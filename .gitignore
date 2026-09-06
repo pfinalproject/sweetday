@@ -9,6 +9,7 @@ backend/.pgdata/
 frontend/node_modules/
 frontend/dist/
 frontend/.angular/
+frontend/certs/
 
 # Editores / SO
 .vscode/

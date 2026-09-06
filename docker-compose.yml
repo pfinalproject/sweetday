@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: sweetday
       POSTGRES_DB: sweetday
     ports:
-      - "5432:5432"
+      - "5442:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -37,6 +37,7 @@ services:
     restart: unless-stopped
     ports:
       - "4200:4200"
+    command: npm start -- --configuration production --host 0.0.0.0 --disable-host-check --proxy-config proxy.conf.json --ssl --ssl-cert certs/cert.pem --ssl-key certs/key.pem
     volumes:
       - ./frontend:/app
       - /app/node_modules
