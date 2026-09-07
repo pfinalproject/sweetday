@@ -55,7 +55,9 @@ export class BarcodeScannerComponent implements AfterViewInit, OnDestroy {
 
   private async iniciar(): Promise<void> {
     try {
-      this.lector = new BrowserMultiFormatReader(HINTS);
+      // Escanear seguido (en vez del default de 500ms) para detectar el código apenas entra en cuadro,
+      // sobre todo con cámaras de gama baja que enfocan lento.
+      this.lector = new BrowserMultiFormatReader(HINTS, { delayBetweenScanAttempts: 100, delayBetweenScanSuccess: 500 });
       const dispositivos = await BrowserMultiFormatReader.listVideoInputDevices();
       if (dispositivos.length === 0) {
         this.error.set('No se encontró ninguna cámara en este dispositivo.');
@@ -64,7 +66,19 @@ export class BarcodeScannerComponent implements AfterViewInit, OnDestroy {
       const trasera = dispositivos.find((d) => /back|trasera|rear|environment/i.test(d.label));
       const deviceId = (trasera ?? dispositivos[dispositivos.length - 1]).deviceId;
 
-      const controles = await this.lector.decodeFromVideoDevice(deviceId, this.videoRef.nativeElement, (resultado) => {
+      // Pedir la mayor resolución posible (más nitidez para leer el código de lejos) y forzar
+      // enfoque continuo — sin esto el navegador puede entregar un stream de baja resolución
+      // con foco fijo, que es la causa típica de "hay que pegar la cámara al código".
+      const constraints: MediaStreamConstraints = {
+        video: {
+          deviceId: { exact: deviceId },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet],
+        },
+      };
+
+      const controles = await this.lector.decodeFromConstraints(constraints, this.videoRef.nativeElement, (resultado) => {
         if (!resultado) {
           return;
         }
